@@ -15,10 +15,13 @@ class Home extends StatelessWidget {
           children: [
             OutlinedButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, 'remo_connection');
+                Navigator.pushNamed(context, '/remo_connection');
               },
               icon: Icon(Icons.link),
-              label: const Text('Connect Remo'),
+              label: const Text(
+                'Connect Remo',
+                style: TextStyle(fontSize: 25),
+              ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Color.fromRGBO(241, 240, 235, 1),
                 elevation: 15,
@@ -27,7 +30,7 @@ class Home extends StatelessWidget {
                   MediaQuery.of(context).size.height * 0.18,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(60),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 side:
                     BorderSide(width: 1, color: Theme.of(context).primaryColor),
@@ -35,10 +38,12 @@ class Home extends StatelessWidget {
             ),
             SizedBox(height: 40),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/remo_transmission');
+              },
               child: const Text(
                 'Start',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white, fontSize: 25),
               ),
               style: TextButton.styleFrom(
                 fixedSize: Size(

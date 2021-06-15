@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:remorder/ui/home.dart';
+import 'package:remorder/ui/remo_transmission.dart';
 
 void main() {
   runApp(MyApp());
@@ -73,7 +74,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => Home(),
           '/remo_connection': (context) => RemoConnection(),
-          '/remo_transmission': (context) => Container(),
+          '/remo_transmission': (context) => RemoTransmission(),
         },
         initialRoute: '/',
       ),
