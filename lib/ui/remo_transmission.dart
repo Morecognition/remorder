@@ -6,13 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 
 class RemoTransmission extends StatelessWidget {
-  Future<void> saveFile(String data) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      File file = File(result.paths.first!);
-      file.writeAsString(data);
-    }
-  }
+  Future<void> saveFile(String data) async {}
 
   @override
   Widget build(BuildContext _) {
@@ -47,7 +41,14 @@ class RemoTransmission extends StatelessWidget {
                       child: const Text('Save'),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        FilePickerResult? result =
+                            await FilePicker.platform.pickFiles();
+                        if (result != null) {
+                          File file = File(result.paths.first!);
+                          file.writeAsString(builderState.data);
+                        }
+                      },
                       child: const Text('Save as'),
                     )
                   ],
