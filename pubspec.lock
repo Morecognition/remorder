@@ -77,14 +77,7 @@ packages:
       name: file
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.1"
-  file_picker:
-    dependency: "direct main"
-    description:
-      name: file_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.2+2"
+    version: "6.1.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -106,13 +99,6 @@ packages:
       url: "git://github.com/kechankrisna/flutter_bluetooth_serial"
     source: git
     version: "1.0.0"
-  flutter_plugin_android_lifecycle:
-    dependency: transitive
-    description:
-      name: flutter_plugin_android_lifecycle
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.2"
   flutter_remo:
     dependency: "direct main"
     description:
@@ -127,18 +113,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_web_plugins:
-    dependency: transitive
-    description: flutter
-    source: sdk
-    version: "0.0.0"
-  js:
+  intl:
     dependency: transitive
     description:
-      name: js
+      name: intl
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.3"
+    version: "0.17.0"
   matcher:
     dependency: transitive
     description:
@@ -203,7 +184,7 @@ packages:
     source: hosted
     version: "2.0.1"
   permission_handler:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: permission_handler
       url: "https://pub.dartlang.org"
@@ -277,6 +258,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  syncfusion_flutter_charts:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_charts
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "19.1.69+1"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "19.1.69"
   term_glyph:
     dependency: transitive
     description:
