@@ -103,8 +103,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: b5723fa2486ea47ebd367699c8f948ef6f30fb9b
+      ref: fixing_streams
+      resolved-ref: "76241c36920b04e996196cea18c6c7de8bc14624"
       url: "git@gitlab.com:artificial-physiology/flutter_remo.git"
     source: git
     version: "0.0.1"

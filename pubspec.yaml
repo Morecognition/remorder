@@ -24,7 +24,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_remo:
-    git: git@gitlab.com:artificial-physiology/flutter_remo.git
+    git:
+      url: git@gitlab.com:artificial-physiology/flutter_remo.git
+      ref: fixing_streams
   bloc: ^7.0.0
   flutter_bloc: ^7.0.0
   syncfusion_flutter_charts: ^19.1.69+1

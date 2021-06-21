@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    RemoBloc remoBloc = RemoBloc();
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -73,8 +74,9 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (context) => Home(),
-          '/remo_connection': (context) => RemoConnection(),
-          '/remo_transmission': (context) => RemoTransmission(),
+          '/remo_connection': (context) => RemoConnection(remoBloc: remoBloc),
+          '/remo_transmission': (context) =>
+              RemoTransmission(remoBloc: remoBloc),
         },
         initialRoute: '/',
       ),
