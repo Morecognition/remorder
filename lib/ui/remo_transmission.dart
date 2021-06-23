@@ -7,50 +7,48 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class RemoTransmission extends StatelessWidget {
-  const RemoTransmission({Key? key, required this.remoBloc}) : super(key: key);
-
   Future<void> saveFile(String data) async {}
-  final RemoBloc remoBloc;
 
   @override
   Widget build(BuildContext _) {
-    return BlocProvider<RemoBloc>(
-      create: (_) => remoBloc,
-      child: Scaffold(
-        appBar: AppBar(),
-        body: Center(
-          child: BlocBuilder<RemoBloc, RemoState>(
-            builder: (builderContext, remoState) {
-              if (remoState is Connected) {
-                return IconButton(
-                  icon: Icon(Icons.play_arrow),
-                  onPressed: () {
-                    BlocProvider.of<RemoBloc>(builderContext)
-                        .add(OnStartRecording());
-                  },
-                );
-              } else if (remoState is TransmissionStarted) {
-                return Column(
-                  children: [
-                    SfCartesianChart(),
-                    SizedBox(height: 40),
-                    IconButton(
-                      icon: Icon(Icons.stop),
-                      onPressed: () {
-                        BlocProvider.of<RemoBloc>(builderContext)
-                            .add(OnStopRecording());
-                      },
-                    ),
-                  ],
-                );
-              } else {
-                return Center(
-                  child: Text(
-                      'Unhandled state: ' + remoState.runtimeType.toString()),
-                );
-              }
-            },
-          ),
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: BlocBuilder<RemoBloc, RemoState>(
+          builder: (builderContext, remoState) {
+            if (remoState is Connected) {
+              return IconButton(
+                icon: Icon(Icons.play_arrow),
+                onPressed: () {
+                  BlocProvider.of<RemoBloc>(builderContext)
+                      .add(OnStartRecording());
+                },
+              );
+            } else if (remoState is StartingTransmission) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (remoState is TransmissionStarted) {
+              return Column(
+                children: [
+                  SfCartesianChart(),
+                  SizedBox(height: 40),
+                  IconButton(
+                    icon: Icon(Icons.stop),
+                    onPressed: () {
+                      BlocProvider.of<RemoBloc>(builderContext)
+                          .add(OnStopRecording());
+                    },
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                child: Text(
+                    'Unhandled state: ' + remoState.runtimeType.toString()),
+              );
+            }
+          },
         ),
       ),
     );
