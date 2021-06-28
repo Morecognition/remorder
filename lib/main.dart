@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
           ),
           routes: {
             '/': (context) => Home(),
-            '/remo_connection': (context) => RemoConnection(),
+            '/remo_connection': (context) => WearRemoStep(),
             '/remo_transmission': (context) => RemoTransmission(),
           },
           initialRoute: '/',

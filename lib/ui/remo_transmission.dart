@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +22,7 @@ class RemoTransmission extends StatelessWidget {
                 icon: Icon(Icons.play_arrow),
                 onPressed: () {
                   BlocProvider.of<RemoBloc>(builderContext)
-                      .add(OnStartRecording());
+                      .add(OnStartTransmission());
                 },
               );
             } else if (remoState is StartingTransmission) {
@@ -29,15 +30,56 @@ class RemoTransmission extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             } else if (remoState is TransmissionStarted) {
+              // Number of samples to keep in the graph;
+              const int samples = 50;
+              // 8 is the number of EMG channels available in Remo.
+              const int channels = 8;
+              int count = 0;
+              var rng = new Random();
+              List<List<_ChartData>> emgChannels =
+                  List<List<_ChartData>>.filled(
+                      channels,
+                      List<_ChartData>.generate(
+                          samples,
+                          (index) => _ChartData(
+                              emgValue: rng.nextInt(10), timestamp: count++)));
+
+              // Updating the chart as data comes.
+              remoState.remoDataStream.listen(
+                (remoData) {
+                  for (int i = 0; i < channels; ++i) {
+                    emgChannels[i].removeAt(0);
+                    emgChannels[i].add(
+                        _ChartData(emgValue: remoData.emg[i], timestamp: 0));
+                  }
+                },
+              );
+
               return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SfCartesianChart(),
+                  SfCartesianChart(
+                    legend: Legend(isVisible: true),
+                    primaryXAxis: CategoryAxis(),
+                    series: List<LineSeries>.generate(
+                      channels,
+                      (index) {
+                        return LineSeries<_ChartData, int>(
+                            dataSource: emgChannels[index],
+                            xValueMapper: (_ChartData data, _) =>
+                                data.timestamp,
+                            yValueMapper: (_ChartData data, _) =>
+                                data.emgValue);
+                      },
+                    ),
+                  ),
                   SizedBox(height: 40),
                   IconButton(
                     icon: Icon(Icons.stop),
                     onPressed: () {
                       BlocProvider.of<RemoBloc>(builderContext)
-                          .add(OnStopRecording());
+                          .add(OnStopTransmission());
                     },
                   ),
                 ],
@@ -52,6 +94,21 @@ class RemoTransmission extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ChartData {
+  final int emgValue;
+  final int timestamp;
+
+  _ChartData({required this.emgValue, required this.timestamp});
+}
+
+class _DataChart extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
   }
 }
 
