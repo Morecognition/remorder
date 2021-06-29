@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class RemoTransmission extends StatelessWidget {
   Future<void> saveFile(String data) async {}
@@ -29,14 +29,15 @@ class RemoTransmission extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             } else if (remoState is TransmissionStarted) {
-              _DataChart chart =
-                  _DataChart(remoDataStream: remoState.remoDataStream);
-
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  chart,
+                  Expanded(
+                      child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _DataChart(remoDataStream: remoState.remoDataStream),
+                  )),
                   SizedBox(height: 40),
                   IconButton(
                     icon: Icon(Icons.stop),
@@ -60,13 +61,6 @@ class RemoTransmission extends StatelessWidget {
   }
 }
 
-class _ChartData {
-  final int emgValue;
-  final int timestamp;
-
-  _ChartData({required this.emgValue, required this.timestamp});
-}
-
 class _DataChart extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -80,63 +74,101 @@ class _DataChart extends StatefulWidget {
 class _DataChartState extends State<_DataChart> {
   @override
   Widget build(BuildContext context) {
-    return SfCartesianChart(
-      legend: Legend(isVisible: true),
-      primaryXAxis: CategoryAxis(),
-      series: List<LineSeries>.generate(
-        channels,
-        (index) {
-          return LineSeries<_ChartData, int>(
-            onRendererCreated: (controller) {
-              _chartSeriesControllers.add(controller);
-            },
-            dataSource: _emgChannels[index],
-            xValueMapper: (_ChartData data, _) => data.timestamp,
-            yValueMapper: (_ChartData data, _) => data.emgValue,
-          );
-        },
+    return LineChart(
+      LineChartData(
+        minY: 0,
+        maxY: 30000,
+        lineTouchData: LineTouchData(enabled: false),
+        clipData: FlClipData.all(),
+        gridData: FlGridData(show: true),
+        lineBarsData: [
+          LineChartBarData(
+            spots: _emgChannels[0],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.grey],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[1],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.red],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[2],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.amber],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[3],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.lime],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[4],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.purple],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[5],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.yellow],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[6],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.blue],
+          ),
+          LineChartBarData(
+            spots: _emgChannels[7],
+            dotData: FlDotData(show: false),
+            isCurved: false,
+            colors: [Colors.black],
+          ),
+        ],
       ),
+      swapAnimationDuration: Duration(milliseconds: 0),
     );
   }
 
   _DataChartState(this.remoDataStream) {
-    _emgChannels =
-        List.filled(channels, List<_ChartData>.empty(growable: true));
+    _emgChannels = List.filled(channels, List<FlSpot>.empty(growable: true));
     for (int i = 0; i < _windowSize; ++i) {
       for (var list in _emgChannels) {
-        list.add(_ChartData(emgValue: 0, timestamp: count));
+        list.add(FlSpot(xvalue, 0));
       }
-      ++count;
+      xvalue += step;
     }
     remoDataStream.listen(
       (remoData) {
+        for (int i = 0; i < channels; ++i) {
+          _emgChannels[i].removeAt(0);
+          _emgChannels[i].add(
+            FlSpot(xvalue, remoData.emg[i].toDouble()),
+          );
+        }
         setState(
           () {
-            for (int i = 0; i < channels; ++i) {
-              _emgChannels[i].removeAt(0);
-              _emgChannels[i].add(
-                _ChartData(emgValue: remoData.emg[i], timestamp: count),
-              );
-              _chartSeriesControllers[i].updateDataSource(
-                addedDataIndex: _windowSize - 1,
-                removedDataIndex: 0,
-              );
-            }
-            ++count;
+            xvalue += step;
           },
         );
       },
     );
   }
 
-  List<ChartSeriesController> _chartSeriesControllers =
-      List.empty(growable: true);
-  static int count = 0;
+  double xvalue = 0;
+  double step = 0.05;
+
   // Number of samples to keep in the graph;
-  static const int _windowSize = 50;
+  static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
-  late List<List<_ChartData>> _emgChannels;
+  late List<List<FlSpot>> _emgChannels;
 
   final Stream<RemoData> remoDataStream;
 }

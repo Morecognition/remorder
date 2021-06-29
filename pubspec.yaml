@@ -27,9 +27,9 @@ dependencies:
     path: ../flutter_remo/
   bloc: ^7.0.0
   flutter_bloc: ^7.0.0
-  syncfusion_flutter_charts: ^19.1.69+1
   permission_handler: ^8.1.0
   path_provider: ^2.0.2
+  fl_chart: ^0.36.2
 
 
   # The following adds the Cupertino Icons font to your application.
