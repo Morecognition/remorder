@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,50 +29,14 @@ class RemoTransmission extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             } else if (remoState is TransmissionStarted) {
-              // Number of samples to keep in the graph;
-              const int samples = 50;
-              // 8 is the number of EMG channels available in Remo.
-              const int channels = 8;
-              int count = 0;
-              var rng = new Random();
-              List<List<_ChartData>> emgChannels =
-                  List<List<_ChartData>>.filled(
-                      channels,
-                      List<_ChartData>.generate(
-                          samples,
-                          (index) => _ChartData(
-                              emgValue: rng.nextInt(10), timestamp: count++)));
-
-              // Updating the chart as data comes.
-              remoState.remoDataStream.listen(
-                (remoData) {
-                  for (int i = 0; i < channels; ++i) {
-                    emgChannels[i].removeAt(0);
-                    emgChannels[i].add(
-                        _ChartData(emgValue: remoData.emg[i], timestamp: 0));
-                  }
-                },
-              );
+              _DataChart chart =
+                  _DataChart(remoDataStream: remoState.remoDataStream);
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SfCartesianChart(
-                    legend: Legend(isVisible: true),
-                    primaryXAxis: CategoryAxis(),
-                    series: List<LineSeries>.generate(
-                      channels,
-                      (index) {
-                        return LineSeries<_ChartData, int>(
-                            dataSource: emgChannels[index],
-                            xValueMapper: (_ChartData data, _) =>
-                                data.timestamp,
-                            yValueMapper: (_ChartData data, _) =>
-                                data.emgValue);
-                      },
-                    ),
-                  ),
+                  chart,
                   SizedBox(height: 40),
                   IconButton(
                     icon: Icon(Icons.stop),
@@ -107,9 +70,75 @@ class _ChartData {
 class _DataChart extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
+    return _DataChartState(remoDataStream);
   }
+
+  const _DataChart({Key? key, required this.remoDataStream}) : super(key: key);
+  final Stream<RemoData> remoDataStream;
+}
+
+class _DataChartState extends State<_DataChart> {
+  @override
+  Widget build(BuildContext context) {
+    return SfCartesianChart(
+      legend: Legend(isVisible: true),
+      primaryXAxis: CategoryAxis(),
+      series: List<LineSeries>.generate(
+        channels,
+        (index) {
+          return LineSeries<_ChartData, int>(
+            onRendererCreated: (controller) {
+              _chartSeriesControllers.add(controller);
+            },
+            dataSource: _emgChannels[index],
+            xValueMapper: (_ChartData data, _) => data.timestamp,
+            yValueMapper: (_ChartData data, _) => data.emgValue,
+          );
+        },
+      ),
+    );
+  }
+
+  _DataChartState(this.remoDataStream) {
+    _emgChannels =
+        List.filled(channels, List<_ChartData>.empty(growable: true));
+    for (int i = 0; i < _windowSize; ++i) {
+      for (var list in _emgChannels) {
+        list.add(_ChartData(emgValue: 0, timestamp: count));
+      }
+      ++count;
+    }
+    remoDataStream.listen(
+      (remoData) {
+        setState(
+          () {
+            for (int i = 0; i < channels; ++i) {
+              _emgChannels[i].removeAt(0);
+              _emgChannels[i].add(
+                _ChartData(emgValue: remoData.emg[i], timestamp: count),
+              );
+              _chartSeriesControllers[i].updateDataSource(
+                addedDataIndex: _windowSize - 1,
+                removedDataIndex: 0,
+              );
+            }
+            ++count;
+          },
+        );
+      },
+    );
+  }
+
+  List<ChartSeriesController> _chartSeriesControllers =
+      List.empty(growable: true);
+  static int count = 0;
+  // Number of samples to keep in the graph;
+  static const int _windowSize = 50;
+  // 8 is the number of EMG channels available in Remo.
+  static const int channels = 8;
+  late List<List<_ChartData>> _emgChannels;
+
+  final Stream<RemoData> remoDataStream;
 }
 
 class _SavePrompt extends StatefulWidget {
