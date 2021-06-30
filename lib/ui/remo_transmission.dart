@@ -76,90 +76,63 @@ class _DataChartState extends State<_DataChart> {
   Widget build(BuildContext context) {
     return LineChart(
       LineChartData(
-        minY: 0,
-        maxY: 30000,
+        minX: _emgChannels[0].first.x,
+        maxX: _emgChannels[0].last.x,
         lineTouchData: LineTouchData(enabled: false),
         clipData: FlClipData.all(),
         gridData: FlGridData(show: true),
         lineBarsData: [
-          LineChartBarData(
-            spots: _emgChannels[0],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.grey],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[1],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.red],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[2],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.amber],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[3],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.lime],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[4],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.purple],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[5],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.yellow],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[6],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.blue],
-          ),
-          LineChartBarData(
-            spots: _emgChannels[7],
-            dotData: FlDotData(show: false),
-            isCurved: false,
-            colors: [Colors.black],
-          ),
+          emgLine(0, Colors.red),
+          emgLine(1, Colors.pink),
+          emgLine(2, Colors.orange),
+          emgLine(3, Colors.yellow),
+          emgLine(4, Colors.green),
+          emgLine(5, Colors.green.shade900),
+          emgLine(6, Colors.blue),
+          emgLine(7, Colors.grey),
         ],
       ),
-      swapAnimationDuration: Duration(milliseconds: 0),
+      swapAnimationDuration: Duration.zero,
     );
   }
 
-  _DataChartState(this.remoDataStream) {
-    _emgChannels = List.filled(channels, List<FlSpot>.empty(growable: true));
-    for (int i = 0; i < _windowSize; ++i) {
-      for (var list in _emgChannels) {
-        list.add(FlSpot(xvalue, 0));
-      }
-      xvalue += step;
-    }
+  LineChartBarData emgLine(int emgIndex, Color color) {
+    return LineChartBarData(
+      spots: _emgChannels[emgIndex],
+      dotData: FlDotData(show: false),
+      isCurved: false,
+      colors: [color],
+      barWidth: 2,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
     remoDataStream.listen(
       (remoData) {
-        for (int i = 0; i < channels; ++i) {
-          _emgChannels[i].removeAt(0);
-          _emgChannels[i].add(
-            FlSpot(xvalue, remoData.emg[i].toDouble()),
-          );
-        }
         setState(
           () {
+            for (int i = 0; i < channels; ++i) {
+              _emgChannels[i].add(
+                FlSpot(xvalue, remoData.emg[i]),
+              );
+              _emgChannels[i].removeAt(0);
+            }
             xvalue += step;
           },
         );
       },
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // TODO
+  }
+
+  _DataChartState(this.remoDataStream);
 
   double xvalue = 0;
   double step = 0.05;
@@ -168,7 +141,14 @@ class _DataChartState extends State<_DataChart> {
   static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
-  late List<List<FlSpot>> _emgChannels;
+  List<List<FlSpot>> _emgChannels = List.generate(
+    channels,
+    (int) => List<FlSpot>.generate(
+      _windowSize,
+      (int) => FlSpot(0, 0),
+      growable: true,
+    ),
+  );
 
   final Stream<RemoData> remoDataStream;
 }
