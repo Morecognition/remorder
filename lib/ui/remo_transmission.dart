@@ -76,6 +76,8 @@ class _DataChartState extends State<_DataChart> {
   Widget build(BuildContext context) {
     return LineChart(
       LineChartData(
+        minY: 0,
+        maxY: 20000,
         minX: _emgChannels[0].first.x,
         maxX: _emgChannels[0].last.x,
         lineTouchData: LineTouchData(enabled: false),
