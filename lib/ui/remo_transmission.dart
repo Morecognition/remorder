@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -24,7 +25,8 @@ class RemoTransmission extends StatelessWidget {
                       .add(OnStartTransmission());
                 },
               );
-            } else if (remoState is StartingTransmission) {
+            } else if (remoState is StartingTransmission ||
+                remoState is StoppingTransmission) {
               return Center(
                 child: CircularProgressIndicator(),
               );
@@ -33,12 +35,36 @@ class RemoTransmission extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  SizedBox(height: 20),
+                  Container(
+                    height: 45,
+                    width: MediaQuery.of(builderContext).size.width * 0.95,
+                    child: Row(
+                      children: [
+                        _ColorLabel(color: Colors.red, text: 'C1'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.pink, text: 'C2'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.orange, text: 'C3'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.yellow, text: 'C4'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.green, text: 'C5'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.green.shade900, text: 'C6'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.blue, text: 'C7'),
+                        Spacer(),
+                        _ColorLabel(color: Colors.grey, text: 'C8'),
+                      ],
+                    ),
+                  ),
                   Expanded(
                       child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: _DataChart(remoDataStream: remoState.remoDataStream),
                   )),
-                  SizedBox(height: 40),
+                  SizedBox(height: 15),
                   IconButton(
                     icon: Icon(Icons.stop),
                     onPressed: () {
@@ -46,12 +72,28 @@ class RemoTransmission extends StatelessWidget {
                           .add(OnStopTransmission());
                     },
                   ),
+                  SizedBox(height: 15),
                 ],
+              );
+            } else if (remoState is Disconnected) {
+              return Center(
+                child: Text('Please go back and connect Remo.'),
+              );
+            } else if (remoState is TransmissionStopped) {
+              return Center(
+                child: TextButton(
+                  onPressed: () {
+                    BlocProvider.of<RemoBloc>(builderContext)
+                        .add(OnResetTransmission());
+                  },
+                  child: Text('Reset'),
+                ),
               );
             } else {
               return Center(
                 child: Text(
-                    'Unhandled state: ' + remoState.runtimeType.toString()),
+                  'Unhandled state: ' + remoState.runtimeType.toString(),
+                ),
               );
             }
           },
@@ -59,6 +101,30 @@ class RemoTransmission extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ColorLabel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+              border: Border.all(),
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          width: 30,
+          height: 25,
+        ),
+        Text(text),
+      ],
+    );
+  }
+
+  const _ColorLabel({Key? key, required this.color, required this.text})
+      : super(key: key);
+  final Color color;
+  final String text;
 }
 
 class _DataChart extends StatefulWidget {
@@ -77,7 +143,7 @@ class _DataChartState extends State<_DataChart> {
     return LineChart(
       LineChartData(
         minY: 0,
-        maxY: 20000,
+        maxY: 20,
         minX: _emgChannels[0].first.x,
         maxX: _emgChannels[0].last.x,
         lineTouchData: LineTouchData(enabled: false),
@@ -111,7 +177,7 @@ class _DataChartState extends State<_DataChart> {
   @override
   void initState() {
     super.initState();
-    remoDataStream.listen(
+    remoStreamSubscription = remoDataStream.listen(
       (remoData) {
         setState(
           () {
@@ -131,7 +197,7 @@ class _DataChartState extends State<_DataChart> {
   @override
   void dispose() {
     super.dispose();
-    // TODO
+    remoStreamSubscription.cancel();
   }
 
   _DataChartState(this.remoDataStream);
@@ -152,6 +218,7 @@ class _DataChartState extends State<_DataChart> {
     ),
   );
 
+  late final StreamSubscription<RemoData> remoStreamSubscription;
   final Stream<RemoData> remoDataStream;
 }
 
