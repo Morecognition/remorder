@@ -8,10 +8,11 @@ import 'package:flutter_remo/flutter_remo.dart';
 import 'package:path_provider/path_provider.dart';
 
 class RemoTransmission extends StatelessWidget {
-  Future<void> saveFile(String data) async {}
-
   @override
   Widget build(BuildContext _) {
+    Future<Directory> tmpDirectory = getTemporaryDirectory();
+    Future<Directory?> externalStorageDirectory = getExternalStorageDirectory();
+    final String tmpFileName = 'tmp.json';
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -60,16 +61,32 @@ class RemoTransmission extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                      child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _DataChart(remoDataStream: remoState.remoDataStream),
-                  )),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: FutureBuilder<Directory?>(
+                        future: tmpDirectory,
+                        builder: (BuildContext context,
+                            AsyncSnapshot<Directory?> snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return _DataChart(
+                              remoDataStream: remoState.remoDataStream,
+                              tmpDirectory: snapshot.data!,
+                              tmpFileName: tmpFileName,
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 15),
                   IconButton(
                     icon: Icon(Icons.stop),
                     onPressed: () {
-                      BlocProvider.of<RemoBloc>(builderContext)
-                          .add(OnStopTransmission());
+                      BlocProvider.of<RemoBloc>(builderContext).add(
+                        OnStopTransmission(),
+                      );
                     },
                   ),
                   SizedBox(height: 15),
@@ -80,14 +97,23 @@ class RemoTransmission extends StatelessWidget {
                 child: Text('Please go back and connect Remo.'),
               );
             } else if (remoState is TransmissionStopped) {
-              return Center(
-                child: TextButton(
-                  onPressed: () {
-                    BlocProvider.of<RemoBloc>(builderContext)
-                        .add(OnResetTransmission());
-                  },
-                  child: Text('Reset'),
-                ),
+              return FutureBuilder(
+                future: Future.wait([tmpDirectory, externalStorageDirectory]),
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<dynamic>> snapshot) {
+                  if (snapshot.hasData &&
+                      snapshot.data != null &&
+                      snapshot.data![0] != null &&
+                      snapshot.data![1] != null) {
+                    return _SavePrompt(
+                      tmpDirectory: snapshot.data![0]! as Directory,
+                      externalStorageDirectory: snapshot.data![1]! as Directory,
+                      tmpFileName: tmpFileName,
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
               );
             } else {
               return Center(
@@ -110,9 +136,12 @@ class _ColorLabel extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-              border: Border.all(),
-              color: color,
-              borderRadius: BorderRadius.all(Radius.circular(20))),
+            border: Border.all(),
+            color: color,
+            borderRadius: BorderRadius.all(
+              Radius.circular(20),
+            ),
+          ),
           width: 30,
           height: 25,
         ),
@@ -130,11 +159,23 @@ class _ColorLabel extends StatelessWidget {
 class _DataChart extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _DataChartState(remoDataStream);
+    return _DataChartState(
+      remoDataStream: remoDataStream,
+      tmpDirectory: tmpDirectory,
+      tmpFileName: tmpFileName,
+    );
   }
 
-  const _DataChart({Key? key, required this.remoDataStream}) : super(key: key);
+  const _DataChart({
+    Key? key,
+    required this.remoDataStream,
+    required this.tmpDirectory,
+    required this.tmpFileName,
+  }) : super(key: key);
+
   final Stream<RemoData> remoDataStream;
+  final Directory tmpDirectory;
+  final String tmpFileName;
 }
 
 class _DataChartState extends State<_DataChart> {
@@ -177,10 +218,16 @@ class _DataChartState extends State<_DataChart> {
   @override
   void initState() {
     super.initState();
+    // Creating file handle.
+    String path = tmpDirectory.path;
+    file = File('$path/$tmpFileName');
+    // Overwriting an empty string to make sure the file has no content.
+    file.writeAsString('');
     remoStreamSubscription = remoDataStream.listen(
       (remoData) {
         setState(
           () {
+            // Adding value to the chart's buffer.
             for (int i = 0; i < channels; ++i) {
               _emgChannels[i].add(
                 FlSpot(xvalue, remoData.emg[i]),
@@ -188,6 +235,12 @@ class _DataChartState extends State<_DataChart> {
               _emgChannels[i].removeAt(0);
             }
             xvalue += step;
+
+            // Appending received remo data to the file as JSON.
+            file.writeAsString(
+              remoData.toJson().toString(),
+              mode: FileMode.append,
+            );
           },
         );
       },
@@ -200,7 +253,11 @@ class _DataChartState extends State<_DataChart> {
     remoStreamSubscription.cancel();
   }
 
-  _DataChartState(this.remoDataStream);
+  _DataChartState({
+    required this.remoDataStream,
+    required this.tmpDirectory,
+    required this.tmpFileName,
+  });
 
   double xvalue = 0;
   double step = 0.05;
@@ -218,26 +275,47 @@ class _DataChartState extends State<_DataChart> {
     ),
   );
 
+  late Directory tempDir;
+  late File file;
+
   late final StreamSubscription<RemoData> remoStreamSubscription;
   final Stream<RemoData> remoDataStream;
+  final Directory tmpDirectory;
+  final String tmpFileName;
 }
 
 class _SavePrompt extends StatefulWidget {
-  const _SavePrompt({Key? key, required this.remoData}) : super(key: key);
+  const _SavePrompt(
+      {Key? key,
+      required this.tmpDirectory,
+      required this.tmpFileName,
+      required this.externalStorageDirectory})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _SaveState(remoData);
+    return _SaveState(
+        tmpDirectory: tmpDirectory,
+        tmpFileName: tmpFileName,
+        externalStorageDirectory: externalStorageDirectory);
   }
 
-  final String remoData;
+  final Directory tmpDirectory;
+  final Directory externalStorageDirectory;
+  final String tmpFileName;
 }
 
 class _SaveState extends State<_SavePrompt> {
-  final String remoData;
-  String _fileName = '';
+  final Directory tmpDirectory;
+  final Directory externalStorageDirectory;
+  final String tmpFileName;
+  late String selectedFileName = tmpFileName;
 
-  _SaveState(this.remoData);
+  _SaveState({
+    required this.tmpDirectory,
+    required this.tmpFileName,
+    required this.externalStorageDirectory,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -247,25 +325,29 @@ class _SaveState extends State<_SavePrompt> {
           width: 100,
           child: TextField(
             onChanged: (value) {
-              _fileName = value;
+              setState(() {
+                selectedFileName = value;
+              });
             },
           ),
         ),
+        Text('.json'),
         TextButton(
           onPressed: () async {
-            if (_fileName.isEmpty) {
+            if (tmpFileName.isEmpty) {
               return;
             }
 
-            final Directory? directory = await getExternalStorageDirectory();
-            if (directory == null) {
-              return;
-            }
+            final String newFilePath =
+                externalStorageDirectory.path + '/$selectedFileName.json';
+            final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
-            final String path = directory.path + '/' + _fileName;
+            File tmpFile = File(tmpFilePath);
+            await tmpFile.copy(newFilePath);
 
-            File file = File(path);
-            file.writeAsString(remoData);
+            await tmpFile.delete();
+
+            BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
           },
           child: Text('Save'),
         ),
