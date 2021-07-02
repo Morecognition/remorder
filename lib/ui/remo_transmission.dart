@@ -330,38 +330,89 @@ class _SaveState extends State<_SavePrompt> {
   });
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 100,
-          child: TextField(
-            onChanged: (value) {
-              setState(() {
-                selectedFileName = value;
-              });
-            },
-          ),
+        Text('Insert file name:'),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              child: TextField(
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    selectedFileName = value;
+                  });
+                },
+              ),
+            ),
+            Text('.json'),
+          ],
         ),
-        Text('.json'),
-        TextButton(
-          onPressed: () async {
-            if (tmpFileName.isEmpty) {
-              return;
-            }
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).accentColor),
+              onPressed: () async {
+                final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
-            final String newFilePath =
-                externalStorageDirectory.path + '/$selectedFileName.json';
-            final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
+                File tmpFile = File(tmpFilePath);
 
-            File tmpFile = File(tmpFilePath);
-            await tmpFile.copy(newFilePath);
+                await tmpFile.delete();
 
-            await tmpFile.delete();
+                BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Recorded values discarded'),
+                  ),
+                );
+              },
+              child: Text('Discard'),
+            ),
+            SizedBox(width: 50),
+            TextButton(
+              style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).accentColor),
+              onPressed: () async {
+                if (selectedFileName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('File name cannot be empty'),
+                    ),
+                  );
+                  return;
+                }
 
-            BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
-          },
-          child: Text('Save'),
+                final String newFilePath =
+                    externalStorageDirectory.path + '/$selectedFileName.json';
+                final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
+
+                File tmpFile = File(tmpFilePath);
+                await tmpFile.copy(newFilePath);
+
+                await tmpFile.delete();
+
+                BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'File successfully saved as $selectedFileName.json'),
+                  ),
+                );
+              },
+              child: Text('Save'),
+            ),
+          ],
         ),
       ],
     );
