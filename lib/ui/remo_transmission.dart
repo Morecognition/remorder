@@ -200,6 +200,18 @@ class _DataChartState extends State<_DataChart> {
           emgLine(6, Colors.blue),
           emgLine(7, Colors.grey),
         ],
+        axisTitleData: FlAxisTitleData(
+          leftTitle: AxisTitle(
+              showTitle: true,
+              titleText: 'millivolt',
+              margin: 0,
+              textAlign: TextAlign.right),
+          bottomTitle: AxisTitle(
+              showTitle: true,
+              titleText: 'samples',
+              margin: 0,
+              textAlign: TextAlign.right),
+        ),
       ),
       swapAnimationDuration: Duration.zero,
     );
