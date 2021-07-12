@@ -346,6 +346,8 @@ class _SaveState extends State<_SavePrompt> {
   final String tmpFileName;
   late String selectedFileName = tmpFileName;
 
+  final _formKey = GlobalKey<FormState>();
+
   _SaveState({
     required this.tmpDirectory,
     required this.tmpFileName,
@@ -359,23 +361,27 @@ class _SaveState extends State<_SavePrompt> {
       children: [
         Text('Insert file name:'),
         SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              child: TextField(
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    selectedFileName = value;
-                  });
-                },
+        Container(
+          width: 200,
+          child: Form(
+            key: _formKey,
+            child: TextFormField(
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
               ),
+              onChanged: (value) {
+                setState(() {
+                  selectedFileName = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'You need to name it';
+                }
+                return null;
+              },
             ),
-          ],
+          ),
         ),
         SizedBox(height: 20),
         Row(
@@ -389,7 +395,7 @@ class _SaveState extends State<_SavePrompt> {
                 final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
                 File tmpJsonFile = File(tmpFilePath + '.json');
-                File tmpCsvFile = File(tmpFilePath + '.json');
+                File tmpCsvFile = File(tmpFilePath + '.csv');
 
                 await tmpJsonFile.delete();
                 await tmpCsvFile.delete();
@@ -408,36 +414,30 @@ class _SaveState extends State<_SavePrompt> {
               style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).accentColor),
               onPressed: () async {
-                if (selectedFileName.isEmpty) {
+                if (_formKey.currentState!.validate()) {
+                  final String newFilePath =
+                      externalStorageDirectory.path + '/$selectedFileName';
+                  final String tmpFilePath =
+                      tmpDirectory.path + '/$tmpFileName';
+
+                  File tmpJsonFile = File(tmpFilePath + '.json');
+                  await tmpJsonFile.copy(newFilePath + '.json');
+
+                  await tmpJsonFile.delete();
+
+                  File tmpCsvFile = File(tmpFilePath + '.csv');
+                  await tmpCsvFile.copy(newFilePath + '.csv');
+
+                  await tmpCsvFile.delete();
+
+                  BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('File name cannot be empty'),
+                      content: Text(
+                          'File successfully saved as $selectedFileName.json and $selectedFileName.csv'),
                     ),
                   );
-                  return;
                 }
-
-                final String newFilePath =
-                    externalStorageDirectory.path + '/$selectedFileName';
-                final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
-
-                File tmpJsonFile = File(tmpFilePath + '.json');
-                await tmpJsonFile.copy(newFilePath + '.json');
-
-                await tmpJsonFile.delete();
-
-                File tmpCsvFile = File(tmpFilePath + '.csv');
-                await tmpCsvFile.copy(newFilePath + '.csv');
-
-                await tmpCsvFile.delete();
-
-                BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'File successfully saved as $selectedFileName.json and $selectedFileName.csv'),
-                  ),
-                );
               },
               child: Text('Save'),
             ),
