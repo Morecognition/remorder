@@ -6,13 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:wakelock/wakelock.dart';
 
 class RemoTransmission extends StatelessWidget {
   @override
   Widget build(BuildContext _) {
     Future<Directory> tmpDirectory = getTemporaryDirectory();
     Future<Directory?> externalStorageDirectory = getExternalStorageDirectory();
-    final String tmpFileName = 'tmp.json';
+    final String tmpFileName = 'tmpFileName';
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -22,6 +23,7 @@ class RemoTransmission extends StatelessWidget {
               return IconButton(
                 icon: Icon(Icons.play_arrow),
                 onPressed: () {
+                  Wakelock.enable();
                   BlocProvider.of<RemoBloc>(builderContext)
                       .add(OnStartTransmission());
                 },
@@ -42,21 +44,21 @@ class RemoTransmission extends StatelessWidget {
                     width: MediaQuery.of(builderContext).size.width * 0.95,
                     child: Row(
                       children: [
-                        _ColorLabel(color: Colors.red, text: 'C1'),
+                        _ColorLabel(color: Colors.red, text: 'Ch1'),
                         Spacer(),
-                        _ColorLabel(color: Colors.pink, text: 'C2'),
+                        _ColorLabel(color: Colors.pink, text: 'Ch2'),
                         Spacer(),
-                        _ColorLabel(color: Colors.orange, text: 'C3'),
+                        _ColorLabel(color: Colors.orange, text: 'Ch3'),
                         Spacer(),
-                        _ColorLabel(color: Colors.yellow, text: 'C4'),
+                        _ColorLabel(color: Colors.yellow, text: 'Ch4'),
                         Spacer(),
-                        _ColorLabel(color: Colors.green, text: 'C5'),
+                        _ColorLabel(color: Colors.green, text: 'Ch5'),
                         Spacer(),
-                        _ColorLabel(color: Colors.green.shade900, text: 'C6'),
+                        _ColorLabel(color: Colors.green.shade900, text: 'Ch6'),
                         Spacer(),
-                        _ColorLabel(color: Colors.blue, text: 'C7'),
+                        _ColorLabel(color: Colors.blue, text: 'Ch7'),
                         Spacer(),
-                        _ColorLabel(color: Colors.grey, text: 'C8'),
+                        _ColorLabel(color: Colors.grey, text: 'Ch8'),
                       ],
                     ),
                   ),
@@ -84,6 +86,7 @@ class RemoTransmission extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.stop),
                     onPressed: () {
+                      Wakelock.disable();
                       BlocProvider.of<RemoBloc>(builderContext).add(
                         OnStopTransmission(),
                       );
@@ -232,9 +235,15 @@ class _DataChartState extends State<_DataChart> {
     super.initState();
     // Creating file handle.
     String path = tmpDirectory.path;
-    file = File('$path/$tmpFileName');
-    // Overwriting an empty string to make sure the file has no content.
-    file.writeAsString('');
+    jsonFile = File('$path/$tmpFileName.json');
+    csvFile = File('$path/$tmpFileName.csv');
+    // Overwriting an empty string to make sure the JSON file has no content.
+    jsonFile.writeAsString('');
+    // Overwriting a header as string to make sure the csv file only contains the header itself.
+    csvFile.writeAsString(
+        'EMG,,,,,,,,Acceleration,,,AngularVelocity,,,MagneticField,,\nCh1,Ch2,Ch3,Ch4,Ch5,Ch6,Ch7,Ch8,X,Y,Z,X,Y,Z,X,Y,Z\n');
+
+    // Listening to Remo.
     remoStreamSubscription = remoDataStream.listen(
       (remoData) {
         setState(
@@ -248,11 +257,24 @@ class _DataChartState extends State<_DataChart> {
             }
             xvalue += step;
 
-            // Appending received remo data to the file as JSON.
-            file.writeAsString(
+            // Appending received Remo data to the JSON file.
+            jsonFile.writeAsString(
               remoData.toJson().toString(),
               mode: FileMode.append,
             );
+
+            // Appending received Remo data to the CSV file.
+            StringBuffer buffer = StringBuffer();
+            for (var emgValue in remoData.emg) {
+              buffer.write('$emgValue,');
+            }
+            buffer.write(
+                '${remoData.acceleration.x},${remoData.acceleration.y},${remoData.acceleration.z},');
+            buffer.write(
+                '${remoData.angularVelocity.x},${remoData.angularVelocity.y},${remoData.angularVelocity.z},');
+            buffer.write(
+                '${remoData.magneticField.x},${remoData.magneticField.y},${remoData.magneticField.z}\n');
+            csvFile.writeAsString(buffer.toString(), mode: FileMode.append);
           },
         );
       },
@@ -288,7 +310,8 @@ class _DataChartState extends State<_DataChart> {
   );
 
   late Directory tempDir;
-  late File file;
+  late File jsonFile;
+  late File csvFile;
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
   final Stream<RemoData> remoDataStream;
@@ -352,7 +375,6 @@ class _SaveState extends State<_SavePrompt> {
                 },
               ),
             ),
-            Text('.json'),
           ],
         ),
         SizedBox(height: 20),
@@ -366,9 +388,11 @@ class _SaveState extends State<_SavePrompt> {
               onPressed: () async {
                 final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
-                File tmpFile = File(tmpFilePath);
+                File tmpJsonFile = File(tmpFilePath + '.json');
+                File tmpCsvFile = File(tmpFilePath + '.json');
 
-                await tmpFile.delete();
+                await tmpJsonFile.delete();
+                await tmpCsvFile.delete();
 
                 BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -394,19 +418,24 @@ class _SaveState extends State<_SavePrompt> {
                 }
 
                 final String newFilePath =
-                    externalStorageDirectory.path + '/$selectedFileName.json';
+                    externalStorageDirectory.path + '/$selectedFileName';
                 final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
-                File tmpFile = File(tmpFilePath);
-                await tmpFile.copy(newFilePath);
+                File tmpJsonFile = File(tmpFilePath + '.json');
+                await tmpJsonFile.copy(newFilePath + '.json');
 
-                await tmpFile.delete();
+                await tmpJsonFile.delete();
+
+                File tmpCsvFile = File(tmpFilePath + '.csv');
+                await tmpCsvFile.copy(newFilePath + '.csv');
+
+                await tmpCsvFile.delete();
 
                 BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                        'File successfully saved as $selectedFileName.json'),
+                        'File successfully saved as $selectedFileName.json and $selectedFileName.csv'),
                   ),
                 );
               },
