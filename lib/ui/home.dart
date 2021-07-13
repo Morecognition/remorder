@@ -37,21 +37,23 @@ class Home extends StatelessWidget {
               ),
             ),
             SizedBox(height: 40),
-            TextButton(
+            OutlinedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/remo_transmission');
               },
               child: const Text(
                 'Start',
-                style: TextStyle(color: Colors.white, fontSize: 25),
               ),
-              style: TextButton.styleFrom(
+              style: OutlinedButton.styleFrom(
                 fixedSize: Size(
-                  MediaQuery.of(context).size.width * 0.35,
-                  MediaQuery.of(context).size.height * 0.35,
+                  MediaQuery.of(context).size.width * 0.40,
+                  MediaQuery.of(context).size.height * 0.40,
                 ),
-                backgroundColor: Theme.of(context).primaryColor,
+                backgroundColor: Color.fromRGBO(241, 240, 235, 1),
                 shape: CircleBorder(),
+                elevation: 15,
+                side:
+                    BorderSide(width: 1, color: Theme.of(context).primaryColor),
               ),
             ),
           ],
