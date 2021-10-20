@@ -235,10 +235,8 @@ class _DataChartState extends State<_DataChart> {
     super.initState();
     // Creating file handle.
     String path = tmpDirectory.path;
-    jsonFile = File('$path/$tmpFileName.json');
     csvFile = File('$path/$tmpFileName.csv');
-    // Overwriting an empty string to make sure the JSON file has no content.
-    jsonFile.writeAsString('');
+
     // Overwriting a header as string to make sure the csv file only contains the header itself.
     csvFile.writeAsString(
         'EMG,,,,,,,,Acceleration,,,AngularVelocity,,,MagneticField,,\nCh1,Ch2,Ch3,Ch4,Ch5,Ch6,Ch7,Ch8,X,Y,Z,X,Y,Z,X,Y,Z\n');
@@ -256,12 +254,6 @@ class _DataChartState extends State<_DataChart> {
               _emgChannels[i].removeAt(0);
             }
             xvalue += step;
-
-            // Appending received Remo data to the JSON file.
-            jsonFile.writeAsString(
-              remoData.toJson().toString(),
-              mode: FileMode.append,
-            );
 
             // Appending received Remo data to the CSV file.
             StringBuffer buffer = StringBuffer();
@@ -310,7 +302,6 @@ class _DataChartState extends State<_DataChart> {
   );
 
   late Directory tempDir;
-  late File jsonFile;
   late File csvFile;
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
@@ -394,10 +385,8 @@ class _SaveState extends State<_SavePrompt> {
               onPressed: () async {
                 final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
 
-                File tmpJsonFile = File(tmpFilePath + '.json');
                 File tmpCsvFile = File(tmpFilePath + '.csv');
 
-                await tmpJsonFile.delete();
                 await tmpCsvFile.delete();
 
                 BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
@@ -420,11 +409,6 @@ class _SaveState extends State<_SavePrompt> {
                   final String tmpFilePath =
                       tmpDirectory.path + '/$tmpFileName';
 
-                  File tmpJsonFile = File(tmpFilePath + '.json');
-                  await tmpJsonFile.copy(newFilePath + '.json');
-
-                  await tmpJsonFile.delete();
-
                   File tmpCsvFile = File(tmpFilePath + '.csv');
                   await tmpCsvFile.copy(newFilePath + '.csv');
 
@@ -434,7 +418,7 @@ class _SaveState extends State<_SavePrompt> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'File successfully saved as $selectedFileName.json and $selectedFileName.csv'),
+                          'File successfully saved as $selectedFileName.csv'),
                     ),
                   );
                 }
