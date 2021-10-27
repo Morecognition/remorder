@@ -184,10 +184,23 @@ class _DataChart extends StatefulWidget {
 class _DataChartState extends State<_DataChart> {
   @override
   Widget build(BuildContext context) {
+    late double minY;
+    late double maxY;
+    switch (BlocProvider.of<RemoBloc>(context).transmissionMode) {
+      case TransmissionMode.rms:
+        minY = 0;
+        maxY = 20;
+        break;
+      case TransmissionMode.rawImu:
+        minY = -15;
+        maxY = 15;
+        break;
+    }
+
     return LineChart(
       LineChartData(
-        minY: 0,
-        maxY: 20,
+        minY: minY,
+        maxY: maxY,
         minX: _emgChannels[0].first.x,
         maxX: _emgChannels[0].last.x,
         lineTouchData: LineTouchData(enabled: false),
