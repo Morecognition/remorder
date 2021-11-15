@@ -70,10 +70,14 @@ class RemoTransmission extends StatelessWidget {
                         builder: (BuildContext context,
                             AsyncSnapshot<Directory?> snapshot) {
                           if (snapshot.hasData && snapshot.data != null) {
+                            // Creating file handle.
+                            String path = snapshot.data!.path;
+                            File csvFile = File('$path/$tmpFileName.csv');
+
                             return _DataChart(
                               remoDataStream: remoState.remoDataStream,
                               tmpDirectory: snapshot.data!,
-                              tmpFileName: tmpFileName,
+                              csvFile: csvFile,
                             );
                           } else {
                             return CircularProgressIndicator();
@@ -165,7 +169,6 @@ class _DataChart extends StatefulWidget {
     return _DataChartState(
       remoDataStream: remoDataStream,
       tmpDirectory: tmpDirectory,
-      tmpFileName: tmpFileName,
     );
   }
 
@@ -173,12 +176,12 @@ class _DataChart extends StatefulWidget {
     Key? key,
     required this.remoDataStream,
     required this.tmpDirectory,
-    required this.tmpFileName,
+    required this.csvFile,
   }) : super(key: key);
 
   final Stream<RemoData> remoDataStream;
   final Directory tmpDirectory;
-  final String tmpFileName;
+  final File csvFile;
 }
 
 class _DataChartState extends State<_DataChart> {
@@ -246,20 +249,13 @@ class _DataChartState extends State<_DataChart> {
   @override
   void initState() {
     super.initState();
-    // Creating file handle.
-    String path = tmpDirectory.path;
-    csvFile = File('$path/$tmpFileName.csv');
-
-    // Overwriting a header as string to make sure the csv file only contains the header itself.
-    csvFile.writeAsString(
-        'EMG,,,,,,,,Acceleration,,,AngularVelocity,,,MagneticField,,\nCh1,Ch2,Ch3,Ch4,Ch5,Ch6,Ch7,Ch8,X,Y,Z,X,Y,Z,X,Y,Z\n');
 
     // Listening to Remo.
     remoStreamSubscription = remoDataStream.listen(
       (remoData) {
         setState(
           () {
-            // Adding value to the chart's buffer.
+            // Adding EMG values to the chart's buffer.
             for (int i = 0; i < channels; ++i) {
               _emgChannels[i].add(
                 FlSpot(xvalue, remoData.emg[i]),
@@ -268,18 +264,7 @@ class _DataChartState extends State<_DataChart> {
             }
             xvalue += step;
 
-            // Appending received Remo data to the CSV file.
-            StringBuffer buffer = StringBuffer();
-            for (var emgValue in remoData.emg) {
-              buffer.write('$emgValue,');
-            }
-            buffer.write(
-                '${remoData.acceleration.x},${remoData.acceleration.y},${remoData.acceleration.z},');
-            buffer.write(
-                '${remoData.angularVelocity.x},${remoData.angularVelocity.y},${remoData.angularVelocity.z},');
-            buffer.write(
-                '${remoData.magneticField.x},${remoData.magneticField.y},${remoData.magneticField.z}\n');
-            csvFile.writeAsString(buffer.toString(), mode: FileMode.append);
+            fileSink.write(remoData.toCsvString());
           },
         );
       },
@@ -290,12 +275,14 @@ class _DataChartState extends State<_DataChart> {
   void dispose() {
     super.dispose();
     remoStreamSubscription.cancel();
+
+    fileSink.flush();
+    fileSink.close();
   }
 
   _DataChartState({
     required this.remoDataStream,
     required this.tmpDirectory,
-    required this.tmpFileName,
   });
 
   double xvalue = 0;
@@ -315,12 +302,12 @@ class _DataChartState extends State<_DataChart> {
   );
 
   late Directory tempDir;
-  late File csvFile;
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
   final Stream<RemoData> remoDataStream;
   final Directory tmpDirectory;
-  final String tmpFileName;
+
+  late IOSink fileSink = widget.csvFile.openWrite();
 }
 
 class _SavePrompt extends StatefulWidget {
