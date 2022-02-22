@@ -192,11 +192,11 @@ class _DataChartState extends State<_DataChart> {
     switch (BlocProvider.of<RemoBloc>(context).transmissionMode) {
       case TransmissionMode.rms:
         minY = 0;
-        maxY = 20;
+        maxY = 35;
         break;
       case TransmissionMode.rawImu:
-        minY = -15;
-        maxY = 15;
+        minY = -18;
+        maxY = 18;
         break;
     }
 
@@ -221,15 +221,17 @@ class _DataChartState extends State<_DataChart> {
         ],
         axisTitleData: FlAxisTitleData(
           leftTitle: AxisTitle(
-              showTitle: true,
-              titleText: 'millivolt',
-              margin: 0,
-              textAlign: TextAlign.right),
+            showTitle: true,
+            titleText: 'mV',
+            margin: 0,
+            textAlign: TextAlign.right,
+          ),
           bottomTitle: AxisTitle(
-              showTitle: true,
-              titleText: 'samples',
-              margin: 0,
-              textAlign: TextAlign.right),
+            showTitle: true,
+            titleText: 'samples',
+            margin: 0,
+            textAlign: TextAlign.right,
+          ),
         ),
       ),
       swapAnimationDuration: Duration.zero,
@@ -292,11 +294,15 @@ class _DataChartState extends State<_DataChart> {
   static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
-  List<List<FlSpot>> _emgChannels = List.generate(
+  late List<List<FlSpot>> _emgChannels = List.generate(
     channels,
     (int) => List<FlSpot>.generate(
       _windowSize,
-      (int) => FlSpot(0, 0),
+      (int) {
+        var spot = FlSpot(xvalue, 0);
+        xvalue += step;
+        return spot;
+      },
       growable: true,
     ),
   );
