@@ -338,6 +338,7 @@ class _SaveState extends State<_SavePrompt> {
   late String selectedFileName = tmpFileName;
 
   final _formKey = GlobalKey<FormState>();
+  static List<String> _options = List.empty(growable: true);
 
   _SaveState({
     required this.tmpDirectory,
@@ -356,20 +357,63 @@ class _SaveState extends State<_SavePrompt> {
           width: 200,
           child: Form(
             key: _formKey,
-            child: TextFormField(
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  selectedFileName = value;
+            child: RawAutocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                return _options.where((String option) {
+                  return option.contains(textEditingValue.text.toLowerCase());
                 });
               },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'You need to name it';
-                }
-                return null;
+              fieldViewBuilder: (BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted) {
+                return TextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  onFieldSubmitted: (String value) {
+                    _options.add(value);
+                    selectedFileName = value;
+                    onFieldSubmitted();
+                  },
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'You need to name it';
+                    }
+                    return null;
+                  },
+                );
+              },
+              optionsViewBuilder: (BuildContext context,
+                  AutocompleteOnSelected<String> onSelected,
+                  Iterable<String> options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.4,
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(8.0),
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final String option = options.elementAt(index);
+                          return GestureDetector(
+                            onTap: () {
+                              onSelected(option);
+                            },
+                            child: ListTile(
+                              title: Text(option),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
               },
             ),
           ),

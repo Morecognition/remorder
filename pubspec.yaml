@@ -25,12 +25,13 @@ dependencies:
     sdk: flutter
   flutter_remo:
     path: ../flutter_remo/
-  bloc: ^7.2.1
-  flutter_bloc: ^7.3.3
-  permission_handler: ^8.1.0
+  bloc: ^8.0.2
+  flutter_bloc: ^8.0.1
+  permission_handler: ^9.0.1
   path_provider: ^2.0.2
-  fl_chart: ^0.40.2
-  wakelock: ^0.5.2
+  fl_chart: ^0.45.0
+  wakelock: ^0.6.1+1
+  input_history_text_field: ^0.1.0
 
 
   # The following adds the Cupertino Icons font to your application.
