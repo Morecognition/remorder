@@ -222,8 +222,14 @@ class _DataChartState extends State<_DataChart> {
     return RadarChart(
       RadarChartData(
         dataSets: [
-          RadarDataSet(dataEntries: _radarEntries),
+          RadarDataSet(
+            dataEntries: _radarEntries,
+          ),
         ],
+        radarBackgroundColor: Colors.transparent,
+        borderData: FlBorderData(show: false),
+        radarBorderData: const BorderSide(color: Colors.transparent),
+        titlePositionPercentageOffset: 0.2,
       ),
     );
   }
@@ -282,7 +288,7 @@ class _DataChartState extends State<_DataChart> {
   void initState() {
     super.initState();
 
-    List.generate(
+    _emgChannels = List.generate(
       channels,
       (int) {
         var queue = ListQueue<FlSpot>();
@@ -330,7 +336,16 @@ class _DataChartState extends State<_DataChart> {
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
   late List<Queue<FlSpot>> _emgChannels;
-  List<RadarEntry> _radarEntries = List.filled(channels, RadarEntry(value: 0));
+  var _radarEntries = [
+    RadarEntry(value: 300),
+    RadarEntry(value: 50),
+    RadarEntry(value: 250),
+    RadarEntry(value: 345),
+    RadarEntry(value: 321),
+    RadarEntry(value: 347),
+    RadarEntry(value: 43),
+    RadarEntry(value: 453),
+  ];
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
 }
