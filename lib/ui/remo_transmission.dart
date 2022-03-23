@@ -214,7 +214,18 @@ class _DataChartState extends State<_DataChart> {
         break;
     }
 
-    return drawLineChart(minY, maxY);
+    return drawRadarChart();
+    //return drawLineChart(minY, maxY);
+  }
+
+  RadarChart drawRadarChart() {
+    return RadarChart(
+      RadarChartData(
+        dataSets: [
+          RadarDataSet(dataEntries: _radarEntries),
+        ],
+      ),
+    );
   }
 
   LineChart drawLineChart(double minY, double maxY) {
@@ -241,7 +252,7 @@ class _DataChartState extends State<_DataChart> {
         axisTitleData: FlAxisTitleData(
           leftTitle: AxisTitle(
             showTitle: true,
-            titleText: 'mV',
+            titleText: 'AU',
             margin: 0,
             textAlign: TextAlign.right,
           ),
@@ -271,6 +282,18 @@ class _DataChartState extends State<_DataChart> {
   void initState() {
     super.initState();
 
+    List.generate(
+      channels,
+      (int) {
+        var queue = ListQueue<FlSpot>();
+        var xvalue = .0;
+        for (var i = 0; i < _windowSize; ++i, xvalue += step) {
+          queue.add(FlSpot(xvalue, 0));
+        }
+        return queue;
+      },
+    );
+
     // Listening to Remo.
     remoStreamSubscription = widget.remoDataStream.listen(
       (remoData) {
@@ -282,6 +305,7 @@ class _DataChartState extends State<_DataChart> {
               _emgChannels[i].add(
                 FlSpot(xvalue, remoData.emg[i]),
               );
+              _radarEntries[i] = RadarEntry(value: remoData.emg[i]);
             }
             xvalue += step;
           },
@@ -305,14 +329,8 @@ class _DataChartState extends State<_DataChart> {
   static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
-  late List<Queue<FlSpot>> _emgChannels = List.generate(channels, (int) {
-    var queue = ListQueue<FlSpot>();
-    var xvalue = .0;
-    for (var i = 0; i < _windowSize; ++i, xvalue += step) {
-      queue.add(FlSpot(xvalue, 0));
-    }
-    return queue;
-  });
+  late List<Queue<FlSpot>> _emgChannels;
+  List<RadarEntry> _radarEntries = List.filled(channels, RadarEntry(value: 0));
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
 }
