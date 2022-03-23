@@ -1,19 +1,17 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:collection';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:wakelock/wakelock.dart';
+
+import '../bloc/remo_file/remo_file_bloc.dart';
 
 class RemoTransmission extends StatelessWidget {
   @override
   Widget build(BuildContext _) {
-    Future<Directory> tmpDirectory = getTemporaryDirectory();
-    Future<Directory?> externalStorageDirectory = getExternalStorageDirectory();
-    final String tmpFileName = 'tmpFileName';
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -34,93 +32,116 @@ class RemoTransmission extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             } else if (remoState is TransmissionStarted) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 20),
-                  Container(
-                    height: 45,
-                    width: MediaQuery.of(builderContext).size.width * 0.95,
-                    child: Row(
-                      children: [
-                        _ColorLabel(color: Colors.red, text: 'Ch1'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.pink, text: 'Ch2'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.orange, text: 'Ch3'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.yellow, text: 'Ch4'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.green, text: 'Ch5'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.green.shade900, text: 'Ch6'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.blue, text: 'Ch7'),
-                        Spacer(),
-                        _ColorLabel(color: Colors.grey, text: 'Ch8'),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: FutureBuilder<Directory?>(
-                        future: tmpDirectory,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<Directory?> snapshot) {
-                          if (snapshot.hasData && snapshot.data != null) {
-                            // Creating file handle.
-                            String path = snapshot.data!.path;
-                            File csvFile = File('$path/$tmpFileName.csv');
-
-                            return _DataChart(
-                              remoDataStream: remoState.remoDataStream,
-                              tmpDirectory: snapshot.data!,
-                              csvFile: csvFile,
-                            );
-                          } else {
-                            return CircularProgressIndicator();
-                          }
-                        },
+              return BlocProvider<RemoFileBloc>(
+                create: (BuildContext context) {
+                  var remoFileBloc = RemoFileBloc(remoState.remoDataStream);
+                  remoFileBloc.add(InitRemoFiles());
+                  return remoFileBloc;
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 20),
+                    Container(
+                      height: 45,
+                      width: MediaQuery.of(builderContext).size.width * 0.95,
+                      child: Row(
+                        children: [
+                          _ColorLabel(color: Colors.red, text: 'Ch1'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.pink, text: 'Ch2'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.orange, text: 'Ch3'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.yellow, text: 'Ch4'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.green, text: 'Ch5'),
+                          Spacer(),
+                          _ColorLabel(
+                              color: Colors.green.shade900, text: 'Ch6'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.blue, text: 'Ch7'),
+                          Spacer(),
+                          _ColorLabel(color: Colors.grey, text: 'Ch8'),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 15),
-                  IconButton(
-                    icon: Icon(Icons.stop),
-                    onPressed: () {
-                      Wakelock.disable();
-                      BlocProvider.of<RemoBloc>(builderContext).add(
-                        OnStopTransmission(),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 15),
-                ],
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _DataChart(
+                          remoDataStream: remoState.remoDataStream,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        BlocConsumer<RemoFileBloc, RemoFileState>(
+                          listener: ((context, state) {
+                            if (state is RemoFileInitial) {
+                              BlocProvider.of<RemoFileBloc>(context)
+                                  .add(InitRemoFiles());
+                            } else if (state is RecordingComplete) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (buildContext) {
+                                  return BlocProvider.value(
+                                    value:
+                                        BlocProvider.of<RemoFileBloc>(context),
+                                    child: _SaveDialog(),
+                                  );
+                                },
+                              );
+                            }
+                          }),
+                          builder: (context, state) {
+                            if (state is RemoFileReady) {
+                              return IconButton(
+                                onPressed: () {
+                                  BlocProvider.of<RemoFileBloc>(context)
+                                      .add(StartRecording());
+                                },
+                                icon: Icon(Icons.fiber_manual_record),
+                              );
+                            } else if (state is Recording) {
+                              return IconButton(
+                                onPressed: () {
+                                  BlocProvider.of<RemoFileBloc>(context)
+                                      .add(StopRecording());
+                                },
+                                icon: Icon(
+                                  Icons.fiber_manual_record,
+                                  color: Colors.red,
+                                ),
+                              );
+                            } else {
+                              return CircularProgressIndicator();
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.stop),
+                          onPressed: () {
+                            Wakelock.disable();
+                            BlocProvider.of<RemoBloc>(builderContext).add(
+                              OnStopTransmission(),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                  ],
+                ),
               );
             } else if (remoState is Disconnected) {
               return Center(
                 child: Text('Please go back and connect Remo.'),
-              );
-            } else if (remoState is TransmissionStopped) {
-              return FutureBuilder(
-                future: Future.wait([tmpDirectory, externalStorageDirectory]),
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<dynamic>> snapshot) {
-                  if (snapshot.hasData &&
-                      snapshot.data != null &&
-                      snapshot.data![0] != null &&
-                      snapshot.data![1] != null) {
-                    return _SavePrompt(
-                      tmpDirectory: snapshot.data![0]! as Directory,
-                      externalStorageDirectory: snapshot.data![1]! as Directory,
-                      tmpFileName: tmpFileName,
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
               );
             } else {
               return Center(
@@ -166,22 +187,15 @@ class _ColorLabel extends StatelessWidget {
 class _DataChart extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _DataChartState(
-      remoDataStream: remoDataStream,
-      tmpDirectory: tmpDirectory,
-    );
+    return _DataChartState();
   }
 
   const _DataChart({
     Key? key,
     required this.remoDataStream,
-    required this.tmpDirectory,
-    required this.csvFile,
   }) : super(key: key);
 
   final Stream<RemoData> remoDataStream;
-  final Directory tmpDirectory;
-  final File csvFile;
 }
 
 class _DataChartState extends State<_DataChart> {
@@ -209,6 +223,7 @@ class _DataChartState extends State<_DataChart> {
         lineTouchData: LineTouchData(enabled: false),
         clipData: FlClipData.all(),
         gridData: FlGridData(show: true),
+        rangeAnnotations: RangeAnnotations(),
         lineBarsData: [
           emgLine(0, Colors.red),
           emgLine(1, Colors.pink),
@@ -240,7 +255,7 @@ class _DataChartState extends State<_DataChart> {
 
   LineChartBarData emgLine(int emgIndex, Color color) {
     return LineChartBarData(
-      spots: _emgChannels[emgIndex],
+      spots: _emgChannels[emgIndex].toList(),
       dotData: FlDotData(show: false),
       isCurved: false,
       colors: [color],
@@ -253,20 +268,18 @@ class _DataChartState extends State<_DataChart> {
     super.initState();
 
     // Listening to Remo.
-    remoStreamSubscription = remoDataStream.listen(
+    remoStreamSubscription = widget.remoDataStream.listen(
       (remoData) {
         setState(
           () {
             // Adding EMG values to the chart's buffer.
             for (int i = 0; i < channels; ++i) {
+              _emgChannels[i].removeFirst();
               _emgChannels[i].add(
                 FlSpot(xvalue, remoData.emg[i]),
               );
-              _emgChannels[i].removeAt(0);
             }
             xvalue += step;
-
-            fileSink.write(remoData.toCsvString());
           },
         );
       },
@@ -277,15 +290,9 @@ class _DataChartState extends State<_DataChart> {
   void dispose() {
     super.dispose();
     remoStreamSubscription.cancel();
-
-    fileSink.flush();
-    fileSink.close();
   }
 
-  _DataChartState({
-    required this.remoDataStream,
-    required this.tmpDirectory,
-  });
+  _DataChartState();
 
   double xvalue = 0;
   double step = 0.05;
@@ -294,188 +301,143 @@ class _DataChartState extends State<_DataChart> {
   static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
-  late List<List<FlSpot>> _emgChannels = List.generate(
-    channels,
-    (int) => List<FlSpot>.generate(
-      _windowSize,
-      (int) {
-        var spot = FlSpot(xvalue, 0);
-        xvalue += step;
-        return spot;
-      },
-      growable: true,
-    ),
-  );
-
-  late Directory tempDir;
+  late List<Queue<FlSpot>> _emgChannels = List.generate(channels, (int) {
+    var queue = ListQueue<FlSpot>();
+    var xvalue = .0;
+    for (var i = 0; i < _windowSize; ++i, xvalue += step) {
+      queue.add(FlSpot(xvalue, 0));
+    }
+    return queue;
+  });
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
-  final Stream<RemoData> remoDataStream;
-  final Directory tmpDirectory;
-
-  late IOSink fileSink = widget.csvFile.openWrite();
 }
 
-class _SavePrompt extends StatefulWidget {
-  const _SavePrompt(
-      {Key? key,
-      required this.tmpDirectory,
-      required this.tmpFileName,
-      required this.externalStorageDirectory})
-      : super(key: key);
+class _SaveDialog extends StatefulWidget {
+  const _SaveDialog({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _SaveState(
-        tmpDirectory: tmpDirectory,
-        tmpFileName: tmpFileName,
-        externalStorageDirectory: externalStorageDirectory);
+    return _SaveState();
   }
-
-  final Directory tmpDirectory;
-  final Directory externalStorageDirectory;
-  final String tmpFileName;
 }
 
-class _SaveState extends State<_SavePrompt> {
-  final Directory tmpDirectory;
-  final Directory externalStorageDirectory;
-  final String tmpFileName;
-  late String selectedFileName = tmpFileName;
+class _SaveState extends State<_SaveDialog> {
+  String selectedFileName = "";
 
   final _formKey = GlobalKey<FormState>();
   static List<String> _options = List.empty(growable: true);
 
-  _SaveState({
-    required this.tmpDirectory,
-    required this.tmpFileName,
-    required this.externalStorageDirectory,
-  });
+  _SaveState();
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text('Insert file name:'),
-        SizedBox(height: 20),
-        Container(
-          width: 200,
-          child: Form(
-            key: _formKey,
-            child: RawAutocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                return _options.where((String option) {
-                  return option.contains(textEditingValue.text.toLowerCase());
-                });
-              },
-              fieldViewBuilder: (BuildContext context,
-                  TextEditingController textEditingController,
-                  FocusNode focusNode,
-                  VoidCallback onFieldSubmitted) {
-                return TextFormField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  onFieldSubmitted: (String value) {
-                    _options.add(value);
-                    selectedFileName = value;
-                    onFieldSubmitted();
-                  },
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'You need to name it';
-                    }
-                    return null;
-                  },
-                );
-              },
-              optionsViewBuilder: (BuildContext context,
-                  AutocompleteOnSelected<String> onSelected,
-                  Iterable<String> options) {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Material(
-                    elevation: 4.0,
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.4,
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(8.0),
-                        itemCount: options.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final String option = options.elementAt(index);
-                          return GestureDetector(
-                            onTap: () {
-                              onSelected(option);
-                            },
-                            child: ListTile(
-                              title: Text(option),
-                            ),
-                          );
-                        },
+    return AlertDialog(
+      title: const Text('Save record?'),
+      content: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text('Insert file name:'),
+          SizedBox(height: 20),
+          Container(
+            width: 200,
+            child: Form(
+              key: _formKey,
+              child: RawAutocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  return _options.where((String option) {
+                    return option.contains(textEditingValue.text.toLowerCase());
+                  });
+                },
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    onFieldSubmitted: (String value) {
+                      _options.add(value);
+                      selectedFileName = value;
+                      onFieldSubmitted();
+                    },
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'You need to name it';
+                      }
+                      return null;
+                    },
+                  );
+                },
+                optionsViewBuilder: (BuildContext context,
+                    AutocompleteOnSelected<String> onSelected,
+                    Iterable<String> options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final String option = options.elementAt(index);
+                            return GestureDetector(
+                              onTap: () {
+                                onSelected(option);
+                              },
+                              child: ListTile(
+                                title: Text(option),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).accentColor),
+          onPressed: () async {
+            if (_formKey.currentState!.validate()) {
+              Navigator.of(context).pop();
+              BlocProvider.of<RemoFileBloc>(context)
+                  .add(SaveRecord(selectedFileName));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content:
+                      Text('File successfully saved as $selectedFileName.csv'),
+                ),
+              );
+            }
+          },
+          child: Text('Save'),
         ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TextButton(
-              style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).accentColor),
-              onPressed: () async {
-                final String tmpFilePath = tmpDirectory.path + '/$tmpFileName';
-
-                File tmpCsvFile = File(tmpFilePath + '.csv');
-
-                await tmpCsvFile.delete();
-
-                BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Recorded values discarded'),
-                  ),
-                );
-              },
-              child: Text('Discard'),
-            ),
-            SizedBox(width: 50),
-            TextButton(
-              style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).accentColor),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  final String newFilePath =
-                      externalStorageDirectory.path + '/$selectedFileName';
-                  final String tmpFilePath =
-                      tmpDirectory.path + '/$tmpFileName';
-
-                  File tmpCsvFile = File(tmpFilePath + '.csv');
-                  await tmpCsvFile.copy(newFilePath + '.csv');
-
-                  await tmpCsvFile.delete();
-
-                  BlocProvider.of<RemoBloc>(context).add(OnResetTransmission());
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'File successfully saved as $selectedFileName.csv'),
-                    ),
-                  );
-                }
-              },
-              child: Text('Save'),
-            ),
-          ],
+        TextButton(
+          style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).accentColor),
+          onPressed: () async {
+            Navigator.of(context).pop();
+            BlocProvider.of<RemoFileBloc>(context).add(DiscardRecord());
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Recorded values discarded'),
+              ),
+            );
+          },
+          child: Text('Discard'),
         ),
       ],
     );
