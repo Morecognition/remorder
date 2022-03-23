@@ -42,6 +42,7 @@ class RemoFileBloc extends Bloc<RemoFileEvent, RemoFileState> {
   }
 
   void _stopRecording(StopRecording event, Emitter<RemoFileState> emit) {
+    remoStreamSubscription.cancel();
     fileSink.close();
     emit(RecordingComplete());
   }
