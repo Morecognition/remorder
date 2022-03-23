@@ -214,6 +214,10 @@ class _DataChartState extends State<_DataChart> {
         break;
     }
 
+    return drawLineChart(minY, maxY);
+  }
+
+  LineChart drawLineChart(double minY, double maxY) {
     return LineChart(
       LineChartData(
         minY: minY,
