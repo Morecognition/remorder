@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
+import 'package:remorder/bloc/chart/chart_bloc.dart';
 import 'package:wakelock/wakelock.dart';
 
 import '../bloc/remo_file/remo_file_bloc.dart';
@@ -14,143 +15,160 @@ class RemoTransmission extends StatelessWidget {
   Widget build(BuildContext _) {
     return Scaffold(
       appBar: AppBar(),
-      body: Center(
-        child: BlocBuilder<RemoBloc, RemoState>(
-          builder: (builderContext, remoState) {
-            if (remoState is Connected) {
-              return IconButton(
-                icon: Icon(Icons.play_arrow),
-                onPressed: () {
-                  Wakelock.enable();
-                  BlocProvider.of<RemoBloc>(builderContext)
-                      .add(OnStartTransmission());
-                },
-              );
-            } else if (remoState is StartingTransmission ||
-                remoState is StoppingTransmission) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (remoState is TransmissionStarted) {
-              return BlocProvider<RemoFileBloc>(
-                create: (BuildContext context) {
-                  var remoFileBloc = RemoFileBloc(remoState.remoDataStream);
-                  remoFileBloc.add(InitRemoFiles());
-                  return remoFileBloc;
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 20),
-                    Container(
-                      height: 45,
-                      width: MediaQuery.of(builderContext).size.width * 0.95,
-                      child: Row(
+      body: BlocProvider<ChartBloc>(
+        create: ((context) => ChartBloc()),
+        child: Center(
+          child: BlocBuilder<RemoBloc, RemoState>(
+            builder: (builderContext, remoState) {
+              if (remoState is Connected) {
+                return IconButton(
+                  icon: Icon(Icons.play_arrow),
+                  onPressed: () {
+                    Wakelock.enable();
+                    BlocProvider.of<RemoBloc>(builderContext).add(
+                      OnStartTransmission(),
+                    );
+                  },
+                );
+              } else if (remoState is StartingTransmission ||
+                  remoState is StoppingTransmission) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else if (remoState is TransmissionStarted) {
+                return BlocProvider<RemoFileBloc>(
+                  create: (BuildContext context) {
+                    var remoFileBloc = RemoFileBloc(remoState.remoDataStream);
+                    remoFileBloc.add(
+                      InitRemoFiles(),
+                    );
+                    return remoFileBloc;
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20),
+                      Container(
+                        height: 45,
+                        width: MediaQuery.of(builderContext).size.width * 0.95,
+                        child: Row(
+                          children: [
+                            _ColorLabel(color: Colors.red, text: 'Ch1'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.pink, text: 'Ch2'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.orange, text: 'Ch3'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.yellow, text: 'Ch4'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.green, text: 'Ch5'),
+                            Spacer(),
+                            _ColorLabel(
+                                color: Colors.green.shade900, text: 'Ch6'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.blue, text: 'Ch7'),
+                            Spacer(),
+                            _ColorLabel(color: Colors.grey, text: 'Ch8'),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _DataChart(
+                            remoDataStream: remoState.remoDataStream,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _ColorLabel(color: Colors.red, text: 'Ch1'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.pink, text: 'Ch2'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.orange, text: 'Ch3'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.yellow, text: 'Ch4'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.green, text: 'Ch5'),
-                          Spacer(),
-                          _ColorLabel(
-                              color: Colors.green.shade900, text: 'Ch6'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.blue, text: 'Ch7'),
-                          Spacer(),
-                          _ColorLabel(color: Colors.grey, text: 'Ch8'),
+                          BlocConsumer<RemoFileBloc, RemoFileState>(
+                            listener: ((context, state) {
+                              if (state is RemoFileInitial) {
+                                BlocProvider.of<RemoFileBloc>(context).add(
+                                  InitRemoFiles(),
+                                );
+                              } else if (state is RecordingComplete) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (buildContext) {
+                                    return BlocProvider.value(
+                                      value: BlocProvider.of<RemoFileBloc>(
+                                          context),
+                                      child: _SaveDialog(),
+                                    );
+                                  },
+                                );
+                              }
+                            }),
+                            builder: (context, state) {
+                              if (state is RemoFileReady) {
+                                return IconButton(
+                                  onPressed: () {
+                                    BlocProvider.of<RemoFileBloc>(context).add(
+                                      StartRecording(),
+                                    );
+                                  },
+                                  icon: Icon(Icons.fiber_manual_record),
+                                );
+                              } else if (state is Recording) {
+                                return IconButton(
+                                  onPressed: () {
+                                    BlocProvider.of<RemoFileBloc>(context).add(
+                                      StopRecording(),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.fiber_manual_record,
+                                    color: Colors.red,
+                                  ),
+                                );
+                              } else {
+                                return CircularProgressIndicator();
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.stop),
+                            onPressed: () {
+                              Wakelock.disable();
+                              BlocProvider.of<RemoBloc>(builderContext).add(
+                                OnStopTransmission(),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            onPressed: (() {
+                              BlocProvider.of<ChartBloc>(builderContext).add(
+                                SwitchChart(),
+                              );
+                            }),
+                            icon: Icon(Icons.access_alarm_sharp),
+                          )
                         ],
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: _DataChart(
-                          remoDataStream: remoState.remoDataStream,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        BlocConsumer<RemoFileBloc, RemoFileState>(
-                          listener: ((context, state) {
-                            if (state is RemoFileInitial) {
-                              BlocProvider.of<RemoFileBloc>(context)
-                                  .add(InitRemoFiles());
-                            } else if (state is RecordingComplete) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (buildContext) {
-                                  return BlocProvider.value(
-                                    value:
-                                        BlocProvider.of<RemoFileBloc>(context),
-                                    child: _SaveDialog(),
-                                  );
-                                },
-                              );
-                            }
-                          }),
-                          builder: (context, state) {
-                            if (state is RemoFileReady) {
-                              return IconButton(
-                                onPressed: () {
-                                  BlocProvider.of<RemoFileBloc>(context)
-                                      .add(StartRecording());
-                                },
-                                icon: Icon(Icons.fiber_manual_record),
-                              );
-                            } else if (state is Recording) {
-                              return IconButton(
-                                onPressed: () {
-                                  BlocProvider.of<RemoFileBloc>(context)
-                                      .add(StopRecording());
-                                },
-                                icon: Icon(
-                                  Icons.fiber_manual_record,
-                                  color: Colors.red,
-                                ),
-                              );
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.stop),
-                          onPressed: () {
-                            Wakelock.disable();
-                            BlocProvider.of<RemoBloc>(builderContext).add(
-                              OnStopTransmission(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                  ],
-                ),
-              );
-            } else if (remoState is Disconnected) {
-              return Center(
-                child: Text('Please go back and connect Remo.'),
-              );
-            } else {
-              return Center(
-                child: Text(
-                  'Unhandled state: ' + remoState.runtimeType.toString(),
-                ),
-              );
-            }
-          },
+                      SizedBox(height: 15),
+                    ],
+                  ),
+                );
+              } else if (remoState is Disconnected) {
+                return Center(
+                  child: Text('Please go back and connect Remo.'),
+                );
+              } else {
+                return Center(
+                  child: Text(
+                    'Unhandled state: ' + remoState.runtimeType.toString(),
+                  ),
+                );
+              }
+            },
+          ),
         ),
       ),
     );
@@ -214,7 +232,21 @@ class _DataChartState extends State<_DataChart> {
         break;
     }
 
-    return drawRadarChart();
+    return BlocBuilder<ChartBloc, ChartState>(
+      builder: ((context, state) {
+        if (state is RadarState) {
+          return drawRadarChart();
+        } else if (state is LineState || state is ChartInitial) {
+          return drawLineChart(minY, maxY);
+        } else {
+          return Center(
+            child: Text(
+              "Unhandled state: " + state.toString(),
+            ),
+          );
+        }
+      }),
+    );
     //return drawLineChart(minY, maxY);
   }
 

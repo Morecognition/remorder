@@ -5,6 +5,6 @@ abstract class ChartState {}
 
 class ChartInitial extends ChartState {}
 
-class RadarChart extends ChartState {}
+class RadarState extends ChartState {}
 
-class LineChart extends ChartState {}
+class LineState extends ChartState {}

@@ -10,10 +10,12 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
       (event, emit) {
         switch (_chartTypes) {
           case ChartTypes.LineChart:
-            emit(RadarChart());
+            _chartTypes = ChartTypes.RadarChart;
+            emit(RadarState());
             break;
           case ChartTypes.RadarChart:
-            emit(LineChart());
+            _chartTypes = ChartTypes.LineChart;
+            emit(LineState());
             break;
         }
       },
