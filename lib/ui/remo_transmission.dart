@@ -155,7 +155,7 @@ class RemoTransmission extends StatelessWidget {
                                 SwitchChart(),
                               );
                             }),
-                            icon: Icon(Icons.access_alarm_sharp),
+                            icon: Icon(Icons.stacked_line_chart),
                           )
                         ],
                       ),
@@ -231,7 +231,7 @@ class _DataChartState extends State<_DataChart> {
     switch (BlocProvider.of<RemoBloc>(context).transmissionMode) {
       case TransmissionMode.rms:
         minY = 0;
-        maxY = 35;
+        maxY = 20;
         break;
       case TransmissionMode.rawImu:
         minY = -18;
@@ -294,6 +294,11 @@ class _DataChartState extends State<_DataChart> {
           emgLine(6, Colors.blue),
           emgLine(7, Colors.grey),
         ],
+        titlesData: FlTitlesData(
+          rightTitles: SideTitles(showTitles: false),
+          topTitles: SideTitles(showTitles: false),
+          bottomTitles: SideTitles(showTitles: false),
+        ),
         axisTitleData: FlAxisTitleData(
           leftTitle: AxisTitle(
             showTitle: true,
