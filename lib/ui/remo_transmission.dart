@@ -149,14 +149,23 @@ class RemoTransmission extends StatelessWidget {
                               );
                             },
                           ),
-                          IconButton(
-                            onPressed: (() {
-                              BlocProvider.of<ChartBloc>(builderContext).add(
-                                SwitchChart(),
+                          () {
+                            if (BlocProvider.of<RemoBloc>(builderContext)
+                                    .transmissionMode ==
+                                TransmissionMode.rms) {
+                              return IconButton(
+                                onPressed: (() {
+                                  BlocProvider.of<ChartBloc>(builderContext)
+                                      .add(
+                                    SwitchChart(),
+                                  );
+                                }),
+                                icon: Icon(Icons.stacked_line_chart),
                               );
-                            }),
-                            icon: Icon(Icons.stacked_line_chart),
-                          )
+                            } else {
+                              return Container();
+                            }
+                          }()
                         ],
                       ),
                       SizedBox(height: 15),
