@@ -87,23 +87,30 @@ class RemoTransmission extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           BlocConsumer<RemoFileBloc, RemoFileState>(
-                            listener: ((context, state) {
+                            listener: ((context, state) async {
                               if (state is RemoFileInitial) {
                                 BlocProvider.of<RemoFileBloc>(context).add(
                                   InitRemoFiles(),
                                 );
                               } else if (state is RecordingComplete) {
-                                showDialog(
+                                var isSaved = await showDialog(
                                   context: context,
                                   barrierDismissible: false,
                                   builder: (buildContext) {
-                                    return BlocProvider.value(
-                                      value: BlocProvider.of<RemoFileBloc>(
-                                          context),
-                                      child: _SaveDialog(),
+                                    return WillPopScope(
+                                      onWillPop: () async => false,
+                                      child: BlocProvider.value(
+                                        value: BlocProvider.of<RemoFileBloc>(
+                                            context),
+                                        child: _SaveDialog(),
+                                      ),
                                     );
                                   },
                                 );
+                                if (!isSaved) {
+                                  BlocProvider.of<RemoFileBloc>(context)
+                                      .add(DiscardRecord());
+                                }
                               }
                             }),
                             builder: (context, state) {
@@ -430,6 +437,9 @@ class _SaveState extends State<_SaveDialog> {
                       selectedFileName = value;
                       onFieldSubmitted();
                     },
+                    onChanged: (String value) {
+                      selectedFileName = value;
+                    },
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
                     ),
@@ -481,7 +491,6 @@ class _SaveState extends State<_SaveDialog> {
               backgroundColor: Theme.of(context).accentColor),
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop();
               BlocProvider.of<RemoFileBloc>(context)
                   .add(SaveRecord(selectedFileName));
               ScaffoldMessenger.of(context).showSnackBar(
@@ -490,6 +499,7 @@ class _SaveState extends State<_SaveDialog> {
                       Text('File successfully saved as $selectedFileName.csv'),
                 ),
               );
+              Navigator.of(context).pop(true);
             }
           },
           child: Text('Save'),
@@ -498,13 +508,13 @@ class _SaveState extends State<_SaveDialog> {
           style: TextButton.styleFrom(
               backgroundColor: Theme.of(context).accentColor),
           onPressed: () async {
-            Navigator.of(context).pop();
             BlocProvider.of<RemoFileBloc>(context).add(DiscardRecord());
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Recorded values discarded'),
               ),
             );
+            Navigator.of(context).pop(false);
           },
           child: Text('Discard'),
         ),
