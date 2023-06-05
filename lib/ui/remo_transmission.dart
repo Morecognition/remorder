@@ -8,8 +8,6 @@ import 'package:flutter_remo/flutter_remo.dart';
 import 'package:remorder/bloc/chart/chart_bloc.dart';
 import 'package:wakelock/wakelock.dart';
 
-import '../bloc/remo_file/remo_file_bloc.dart';
-
 class RemoTransmission extends StatelessWidget {
   @override
   Widget build(BuildContext _) {
@@ -37,13 +35,7 @@ class RemoTransmission extends StatelessWidget {
                 );
               } else if (remoState is TransmissionStarted) {
                 return BlocProvider<RemoFileBloc>(
-                  create: (BuildContext context) {
-                    var remoFileBloc = RemoFileBloc(remoState.remoDataStream);
-                    remoFileBloc.add(
-                      InitRemoFiles(),
-                    );
-                    return remoFileBloc;
-                  },
+                  create: (BuildContext context) => RemoFileBloc(),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,11 +80,7 @@ class RemoTransmission extends StatelessWidget {
                         children: [
                           BlocConsumer<RemoFileBloc, RemoFileState>(
                             listener: ((context, state) async {
-                              if (state is RemoFileInitial) {
-                                BlocProvider.of<RemoFileBloc>(context).add(
-                                  InitRemoFiles(),
-                                );
-                              } else if (state is RecordingComplete) {
+                              if (state is RecordingComplete) {
                                 var isSaved = await showDialog(
                                   context: context,
                                   barrierDismissible: false,
@@ -117,8 +105,11 @@ class RemoTransmission extends StatelessWidget {
                               if (state is RemoFileReady) {
                                 return IconButton(
                                   onPressed: () {
+                                    var remoDataStream =
+                                        BlocProvider.of<RemoBloc>(context)
+                                            .dataStream;
                                     BlocProvider.of<RemoFileBloc>(context).add(
-                                      StartRecording(),
+                                      StartRecording(remoDataStream),
                                     );
                                   },
                                   icon: Icon(Icons.fiber_manual_record),
@@ -150,21 +141,14 @@ class RemoTransmission extends StatelessWidget {
                             },
                           ),
                           () {
-                            if (BlocProvider.of<RemoBloc>(builderContext)
-                                    .transmissionMode ==
-                                TransmissionMode.rms) {
-                              return IconButton(
-                                onPressed: (() {
-                                  BlocProvider.of<ChartBloc>(builderContext)
-                                      .add(
-                                    SwitchChart(),
-                                  );
-                                }),
-                                icon: Icon(Icons.stacked_line_chart),
-                              );
-                            } else {
-                              return Container();
-                            }
+                            return IconButton(
+                              onPressed: (() {
+                                BlocProvider.of<ChartBloc>(builderContext).add(
+                                  SwitchChart(),
+                                );
+                              }),
+                              icon: Icon(Icons.stacked_line_chart),
+                            );
                           }()
                         ],
                       ),
@@ -235,18 +219,8 @@ class _DataChart extends StatefulWidget {
 class _DataChartState extends State<_DataChart> {
   @override
   Widget build(BuildContext context) {
-    late double minY;
-    late double maxY;
-    switch (BlocProvider.of<RemoBloc>(context).transmissionMode) {
-      case TransmissionMode.rms:
-        minY = 0;
-        maxY = 20;
-        break;
-      case TransmissionMode.rawImu:
-        minY = -18;
-        maxY = 18;
-        break;
-    }
+    double minY = 0;
+    double maxY = 20;
 
     return BlocBuilder<ChartBloc, ChartState>(
       builder: ((context, state) {
@@ -303,25 +277,7 @@ class _DataChartState extends State<_DataChart> {
           emgLine(6, Colors.blue),
           emgLine(7, Colors.grey),
         ],
-        titlesData: FlTitlesData(
-          rightTitles: SideTitles(showTitles: false),
-          topTitles: SideTitles(showTitles: false),
-          bottomTitles: SideTitles(showTitles: false),
-        ),
-        axisTitleData: FlAxisTitleData(
-          leftTitle: AxisTitle(
-            showTitle: true,
-            titleText: 'AU',
-            margin: 0,
-            textAlign: TextAlign.right,
-          ),
-          bottomTitle: AxisTitle(
-            showTitle: true,
-            titleText: 'samples',
-            margin: 0,
-            textAlign: TextAlign.right,
-          ),
-        ),
+        titlesData: FlTitlesData(),
       ),
       swapAnimationDuration: Duration.zero,
     );
@@ -332,7 +288,6 @@ class _DataChartState extends State<_DataChart> {
       spots: _emgChannels[emgIndex].toList(),
       dotData: FlDotData(show: false),
       isCurved: false,
-      colors: [color],
       barWidth: 2,
     );
   }
@@ -502,7 +457,7 @@ class _SaveState extends State<_SaveDialog> {
       actions: [
         TextButton(
           style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).accentColor),
+              backgroundColor: Theme.of(context).colorScheme.secondary),
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               BlocProvider.of<RemoFileBloc>(context)
@@ -520,7 +475,7 @@ class _SaveState extends State<_SaveDialog> {
         ),
         TextButton(
           style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).accentColor),
+              backgroundColor: Theme.of(context).colorScheme.secondary),
           onPressed: () async {
             BlocProvider.of<RemoFileBloc>(context).add(DiscardRecord());
             ScaffoldMessenger.of(context).showSnackBar(

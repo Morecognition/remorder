@@ -1,0 +1,3 @@
+[submodule "flutter_remo"]
+	path = flutter_remo
+	url = https://github.com/morecognition/flutter_remo.git
