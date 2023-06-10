@@ -220,7 +220,7 @@ class _DataChartState extends State<_DataChart> {
   @override
   Widget build(BuildContext context) {
     double minY = 0;
-    double maxY = 20;
+    double maxY = 250;
 
     return BlocBuilder<ChartBloc, ChartState>(
       builder: ((context, state) {
