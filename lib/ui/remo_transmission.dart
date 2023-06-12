@@ -285,6 +285,7 @@ class _DataChartState extends State<_DataChart> {
 
   LineChartBarData emgLine(int emgIndex, Color color) {
     return LineChartBarData(
+      color: color,
       spots: _emgChannels[emgIndex].toList(),
       dotData: FlDotData(show: false),
       isCurved: false,
