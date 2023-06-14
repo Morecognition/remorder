@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/material.dart';
 
 part 'chart_event.dart';
 part 'chart_state.dart';
@@ -9,12 +9,12 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     on<SwitchChart>(
       (event, emit) {
         switch (_chartTypes) {
-          case ChartTypes.LineChart:
-            _chartTypes = ChartTypes.RadarChart;
+          case ChartTypes.lineChart:
+            _chartTypes = ChartTypes.radarChart;
             emit(RadarState());
             break;
-          case ChartTypes.RadarChart:
-            _chartTypes = ChartTypes.LineChart;
+          case ChartTypes.radarChart:
+            _chartTypes = ChartTypes.lineChart;
             emit(LineState());
             break;
         }
@@ -22,7 +22,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     );
   }
 
-  ChartTypes _chartTypes = ChartTypes.LineChart;
+  ChartTypes _chartTypes = ChartTypes.lineChart;
 }
 
-enum ChartTypes { LineChart, RadarChart }
+enum ChartTypes { lineChart, radarChart }

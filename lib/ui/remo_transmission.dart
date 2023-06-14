@@ -9,8 +9,10 @@ import 'package:remorder/bloc/chart/chart_bloc.dart';
 import 'package:wakelock/wakelock.dart';
 
 class RemoTransmission extends StatelessWidget {
+  const RemoTransmission({super.key});
+
   @override
-  Widget build(BuildContext _) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: BlocProvider<ChartBloc>(
@@ -20,7 +22,7 @@ class RemoTransmission extends StatelessWidget {
             builder: (builderContext, remoState) {
               if (remoState is Connected) {
                 return IconButton(
-                  icon: Icon(Icons.play_arrow),
+                  icon: const Icon(Icons.play_arrow),
                   onPressed: () {
                     Wakelock.enable();
                     BlocProvider.of<RemoBloc>(builderContext).add(
@@ -30,7 +32,7 @@ class RemoTransmission extends StatelessWidget {
                 );
               } else if (remoState is StartingTransmission ||
                   remoState is StoppingTransmission) {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               } else if (remoState is TransmissionStarted) {
@@ -40,28 +42,30 @@ class RemoTransmission extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 20),
-                      Container(
+                      const SizedBox(height: 20),
+                      SizedBox(
                         height: 45,
                         width: MediaQuery.of(builderContext).size.width * 0.95,
                         child: Row(
                           children: [
-                            _ColorLabel(color: Colors.red, text: 'Ch1'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.pink, text: 'Ch2'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.orange, text: 'Ch3'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.yellow, text: 'Ch4'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.green, text: 'Ch5'),
-                            Spacer(),
+                            const _ColorLabel(color: Colors.red, text: 'Ch1'),
+                            const Spacer(),
+                            const _ColorLabel(color: Colors.pink, text: 'Ch2'),
+                            const Spacer(),
+                            const _ColorLabel(
+                                color: Colors.orange, text: 'Ch3'),
+                            const Spacer(),
+                            const _ColorLabel(
+                                color: Colors.yellow, text: 'Ch4'),
+                            const Spacer(),
+                            const _ColorLabel(color: Colors.green, text: 'Ch5'),
+                            const Spacer(),
                             _ColorLabel(
                                 color: Colors.green.shade900, text: 'Ch6'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.blue, text: 'Ch7'),
-                            Spacer(),
-                            _ColorLabel(color: Colors.grey, text: 'Ch8'),
+                            const Spacer(),
+                            const _ColorLabel(color: Colors.blue, text: 'Ch7'),
+                            const Spacer(),
+                            const _ColorLabel(color: Colors.grey, text: 'Ch8'),
                           ],
                         ),
                       ),
@@ -73,7 +77,7 @@ class RemoTransmission extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -90,12 +94,12 @@ class RemoTransmission extends StatelessWidget {
                                       child: BlocProvider.value(
                                         value: BlocProvider.of<RemoFileBloc>(
                                             context),
-                                        child: _SaveDialog(),
+                                        child: const _SaveDialog(),
                                       ),
                                     );
                                   },
                                 );
-                                if (!isSaved) {
+                                if (!isSaved && context.mounted) {
                                   BlocProvider.of<RemoFileBloc>(context)
                                       .add(DiscardRecord());
                                 }
@@ -105,14 +109,13 @@ class RemoTransmission extends StatelessWidget {
                               if (state is RemoFileReady) {
                                 return IconButton(
                                   onPressed: () {
-                                    var remoDataStream =
-                                        BlocProvider.of<RemoBloc>(context)
-                                            .dataStream;
-                                    BlocProvider.of<RemoFileBloc>(context).add(
-                                      StartRecording(remoDataStream),
+                                    var bloc =
+                                        BlocProvider.of<RemoFileBloc>(context);
+                                    bloc.add(
+                                      StartRecording(bloc.remoDataStream),
                                     );
                                   },
-                                  icon: Icon(Icons.fiber_manual_record),
+                                  icon: const Icon(Icons.fiber_manual_record),
                                 );
                               } else if (state is Recording) {
                                 return IconButton(
@@ -121,18 +124,18 @@ class RemoTransmission extends StatelessWidget {
                                       StopRecording(),
                                     );
                                   },
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.fiber_manual_record,
                                     color: Colors.red,
                                   ),
                                 );
                               } else {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               }
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.stop),
+                            icon: const Icon(Icons.stop),
                             onPressed: () {
                               Wakelock.disable();
                               BlocProvider.of<RemoBloc>(builderContext).add(
@@ -147,23 +150,23 @@ class RemoTransmission extends StatelessWidget {
                                   SwitchChart(),
                                 );
                               }),
-                              icon: Icon(Icons.stacked_line_chart),
+                              icon: const Icon(Icons.stacked_line_chart),
                             );
                           }()
                         ],
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                     ],
                   ),
                 );
               } else if (remoState is Disconnected) {
-                return Center(
+                return const Center(
                   child: Text('Please go back and connect Remo.'),
                 );
               } else {
                 return Center(
                   child: Text(
-                    'Unhandled state: ' + remoState.runtimeType.toString(),
+                    'Unhandled state: ${remoState.runtimeType}',
                   ),
                 );
               }
@@ -184,7 +187,7 @@ class _ColorLabel extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(),
             color: color,
-            borderRadius: BorderRadius.all(
+            borderRadius: const BorderRadius.all(
               Radius.circular(20),
             ),
           ),
@@ -231,7 +234,7 @@ class _DataChartState extends State<_DataChart> {
         } else {
           return Center(
             child: Text(
-              "Unhandled state: " + state.toString(),
+              "Unhandled state: $state",
             ),
           );
         }
@@ -263,10 +266,10 @@ class _DataChartState extends State<_DataChart> {
         maxY: maxY,
         minX: _emgChannels[0].first.x,
         maxX: _emgChannels[0].last.x,
-        lineTouchData: LineTouchData(enabled: false),
-        clipData: FlClipData.all(),
-        gridData: FlGridData(show: true),
-        rangeAnnotations: RangeAnnotations(),
+        lineTouchData: const LineTouchData(enabled: false),
+        clipData: const FlClipData.all(),
+        gridData: const FlGridData(show: true),
+        rangeAnnotations: const RangeAnnotations(),
         lineBarsData: [
           emgLine(0, Colors.red),
           emgLine(1, Colors.pink),
@@ -277,9 +280,19 @@ class _DataChartState extends State<_DataChart> {
           emgLine(6, Colors.blue),
           emgLine(7, Colors.grey),
         ],
-        titlesData: FlTitlesData(),
+        titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+                axisNameWidget: const Text("microvolts"),
+                sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: MediaQuery.of(context).size.width * 0.1)),
+            rightTitles: const AxisTitles(),
+            topTitles: const AxisTitles(),
+            bottomTitles: const AxisTitles(
+                axisNameWidget: Text("seconds"),
+                sideTitles: SideTitles(showTitles: true))),
       ),
-      swapAnimationDuration: Duration.zero,
+      duration: Duration.zero,
     );
   }
 
@@ -287,7 +300,7 @@ class _DataChartState extends State<_DataChart> {
     return LineChartBarData(
       color: color,
       spots: _emgChannels[emgIndex].toList(),
-      dotData: FlDotData(show: false),
+      dotData: const FlDotData(show: false),
       isCurved: false,
       barWidth: 2,
     );
@@ -299,7 +312,7 @@ class _DataChartState extends State<_DataChart> {
 
     _emgChannels = List.generate(
       channels,
-      (int) {
+      (integer) {
         var queue = ListQueue<FlSpot>();
         var xvalue = .0;
         for (var i = 0; i < _windowSize; ++i, xvalue += step) {
@@ -338,22 +351,22 @@ class _DataChartState extends State<_DataChart> {
   _DataChartState();
 
   double xvalue = 0;
-  double step = 0.05;
+  double step = 0.064;
 
   // Number of samples to keep in the graph;
   static const int _windowSize = 100;
   // 8 is the number of EMG channels available in Remo.
   static const int channels = 8;
   late List<Queue<FlSpot>> _emgChannels;
-  var _radarEntries = [
-    RadarEntry(value: 300),
-    RadarEntry(value: 50),
-    RadarEntry(value: 250),
-    RadarEntry(value: 345),
-    RadarEntry(value: 321),
-    RadarEntry(value: 347),
-    RadarEntry(value: 43),
-    RadarEntry(value: 453),
+  final _radarEntries = [
+    const RadarEntry(value: 300),
+    const RadarEntry(value: 50),
+    const RadarEntry(value: 250),
+    const RadarEntry(value: 345),
+    const RadarEntry(value: 321),
+    const RadarEntry(value: 347),
+    const RadarEntry(value: 43),
+    const RadarEntry(value: 453),
   ];
 
   late final StreamSubscription<RemoData> remoStreamSubscription;
@@ -372,7 +385,7 @@ class _SaveState extends State<_SaveDialog> {
   String selectedFileName = "";
 
   final _formKey = GlobalKey<FormState>();
-  static List<String> _options = List.empty(growable: true);
+  static final List<String> _options = List.empty(growable: true);
 
   _SaveState();
   @override
@@ -383,9 +396,9 @@ class _SaveState extends State<_SaveDialog> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('Insert file name:'),
-          SizedBox(height: 20),
-          Container(
+          const Text('Insert file name:'),
+          const SizedBox(height: 20),
+          SizedBox(
             width: 200,
             child: Form(
               key: _formKey,
@@ -410,8 +423,8 @@ class _SaveState extends State<_SaveDialog> {
                     onChanged: (String value) {
                       selectedFileName = value;
                     },
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -472,7 +485,7 @@ class _SaveState extends State<_SaveDialog> {
               Navigator.of(context).pop(true);
             }
           },
-          child: Text('Save'),
+          child: const Text('Save'),
         ),
         TextButton(
           style: TextButton.styleFrom(
@@ -480,13 +493,13 @@ class _SaveState extends State<_SaveDialog> {
           onPressed: () async {
             BlocProvider.of<RemoFileBloc>(context).add(DiscardRecord());
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                 content: Text('Recorded values discarded'),
               ),
             );
             Navigator.of(context).pop(false);
           },
-          child: Text('Discard'),
+          child: const Text('Discard'),
         ),
       ],
     );

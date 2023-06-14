@@ -4,11 +4,15 @@ import 'package:flutter_remo/flutter_remo.dart';
 import 'package:remorder/ui/home.dart';
 import 'package:remorder/ui/remo_transmission.dart';
 
+import 'ui/remo_connection.dart';
+
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -26,22 +30,22 @@ class MyApp extends StatelessWidget {
           title: 'Remo physiotherapy',
           theme: ThemeData(
             // Morecognition dark blue.
-            primaryColor: Color.fromRGBO(49, 61, 83, 1),
+            primaryColor: const Color.fromRGBO(49, 61, 83, 1),
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            textTheme: TextTheme(
+            textTheme: const TextTheme(
               labelLarge: TextStyle(
                 fontSize: 16,
                 fontFamily: 'Isidora Sans SemiBold',
                 color: Color.fromRGBO(255, 255, 255, 1),
               ),
             ),
-            tabBarTheme: TabBarTheme(
+            tabBarTheme: const TabBarTheme(
               labelColor: Color.fromRGBO(93, 225, 167, 1),
               unselectedLabelColor: Colors.white70,
             ),
             // Light grey.
-            cardColor: Color.fromRGBO(242, 243, 244, 1),
-            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            cardColor: const Color.fromRGBO(242, 243, 244, 1),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
               // Morecognition dark blue.
               backgroundColor: Color.fromRGBO(49, 61, 83, 1),
               // Light grey.
@@ -51,28 +55,31 @@ class MyApp extends StatelessWidget {
               unselectedItemColor: Color.fromRGBO(242, 243, 244, 1),
               // Morecognition light green
               selectedItemColor: Color.fromRGBO(93, 225, 167, 1),
-            ), colorScheme: ColorScheme.fromSwatch(primarySwatch: () {
+            ),
+            colorScheme: ColorScheme.fromSwatch(primarySwatch: () {
               // Morecognition light green.
               Map<int, Color> swatch = {
-                50: Color.fromRGBO(93, 225, 167, .1),
-                100: Color.fromRGBO(93, 225, 167, .2),
-                200: Color.fromRGBO(93, 225, 167, .3),
-                300: Color.fromRGBO(93, 225, 167, .4),
-                400: Color.fromRGBO(93, 225, 167, .5),
-                500: Color.fromRGBO(93, 225, 167, .6),
-                600: Color.fromRGBO(93, 225, 167, .7),
-                700: Color.fromRGBO(93, 225, 167, .8),
-                800: Color.fromRGBO(93, 225, 167, .9),
-                900: Color.fromRGBO(93, 225, 167, 1),
+                50: const Color.fromRGBO(93, 225, 167, .1),
+                100: const Color.fromRGBO(93, 225, 167, .2),
+                200: const Color.fromRGBO(93, 225, 167, .3),
+                300: const Color.fromRGBO(93, 225, 167, .4),
+                400: const Color.fromRGBO(93, 225, 167, .5),
+                500: const Color.fromRGBO(93, 225, 167, .6),
+                600: const Color.fromRGBO(93, 225, 167, .7),
+                700: const Color.fromRGBO(93, 225, 167, .8),
+                800: const Color.fromRGBO(93, 225, 167, .9),
+                900: const Color.fromRGBO(93, 225, 167, 1),
               };
 
-              return MaterialColor(Color.fromRGBO(49, 61, 83, 1).value, swatch);
-            }()).copyWith(secondary: Color.fromRGBO(93, 225, 167, 1)),
+              return MaterialColor(
+                  const Color.fromRGBO(49, 61, 83, 1).value, swatch);
+            }())
+                .copyWith(secondary: const Color.fromRGBO(93, 225, 167, 1)),
           ),
           routes: {
-            '/': (context) => Home(),
-            '/remo_connection': (context) => WearRemoStep(),
-            '/remo_transmission': (context) => RemoTransmission(),
+            '/': (context) => const Home(),
+            '/remo_connection': (context) => const WearRemoStep(),
+            '/remo_transmission': (context) => const RemoTransmission(),
           },
           initialRoute: '/',
         ),
