@@ -80,14 +80,6 @@ class TurnOnBluetoothStep extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Raw mode'),
-                  SizedBox(width: 30),
-                  _Switch(),
-                ],
-              ),
               const Text('Turn on bluetooth on your device'),
               Image.asset(
                 'assets/bluetooth.png',

@@ -106,13 +106,14 @@ class RemoTransmission extends StatelessWidget {
                               }
                             }),
                             builder: (context, state) {
-                              if (state is RemoFileReady) {
+                              if (state is RemoFileReady ||
+                                  state is RemoFileInitial) {
                                 return IconButton(
                                   onPressed: () {
                                     var bloc =
                                         BlocProvider.of<RemoFileBloc>(context);
                                     bloc.add(
-                                      StartRecording(bloc.remoDataStream),
+                                      StartRecording(remoState.remoDataStream),
                                     );
                                   },
                                   icon: const Icon(Icons.fiber_manual_record),
