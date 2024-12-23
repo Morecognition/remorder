@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:remorder/bloc/chart/chart_bloc.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class RemoTransmission extends StatelessWidget {
   const RemoTransmission({super.key});
@@ -24,7 +24,7 @@ class RemoTransmission extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.play_arrow),
                   onPressed: () {
-                    Wakelock.enable();
+                    WakelockPlus.enable();
                     BlocProvider.of<RemoBloc>(builderContext).add(
                       OnStartTransmission(),
                     );
@@ -138,7 +138,7 @@ class RemoTransmission extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.stop),
                             onPressed: () {
-                              Wakelock.disable();
+                              WakelockPlus.disable();
                               BlocProvider.of<RemoBloc>(builderContext).add(
                                 OnStopTransmission(),
                               );
