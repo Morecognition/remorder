@@ -1,8 +1,12 @@
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class WearRemoStep extends StatelessWidget {
   const WearRemoStep({super.key});
@@ -89,10 +93,22 @@ class TurnOnBluetoothStep extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   var bluetoothScan = await Permission.bluetoothScan.request();
-                  var bluetoothConnect =
-                      await Permission.bluetoothConnect.request();
+                  var bluetoothConnect = await Permission.bluetoothConnect.request();
+                  await Permission.bluetooth.request();
+
+                  var locationUse = PermissionStatus.granted;
+
+                  if(Platform.isAndroid) {
+                    var androidInfo = await DeviceInfoPlugin().androidInfo;
+
+                    if(androidInfo.version.sdkInt <= 30) {
+                      locationUse = await Permission.locationWhenInUse.request();
+                    }
+                  }
+
                   if (bluetoothScan.isGranted &&
                       bluetoothConnect.isGranted &&
+                      locationUse.isGranted &&
                       context.mounted) {
                     Navigator.push(
                       context,
@@ -108,7 +124,7 @@ class TurnOnBluetoothStep extends StatelessWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Bluetooth permisison'),
+                          title: const Text('Bluetooth permission'),
                           content: const Text(
                               'Remo needs Bluetooth permissions in order to connect with the device.'),
                           actions: <Widget>[
@@ -135,9 +151,7 @@ class TurnOnBluetoothStep extends StatelessWidget {
 }
 
 class _Switch extends StatefulWidget {
-  const _Switch({
-    Key? key,
-  }) : super(key: key);
+  const _Switch();
 
   @override
   State<_Switch> createState() => _SwitchState();
@@ -222,9 +236,7 @@ class BluetoothStep extends StatelessWidget {
                   child: Text("Discover"),
                 ),
                 onPressed: () async {
-                  if (await Permission.locationWhenInUse.request().isGranted &&
-                      await Permission.bluetooth.request().isGranted &&
-                      context.mounted) {
+                  if (context.mounted) {
                     BlocProvider.of<BluetoothBloc>(context)
                         .add(OnStartDiscovery());
                   }
@@ -296,7 +308,6 @@ class RemoConnectionStep extends StatelessWidget {
     );
   }
 
-  const RemoConnectionStep({Key? key, required this.bluetoothAddress})
-      : super(key: key);
+  const RemoConnectionStep({super.key, required this.bluetoothAddress});
   final String bluetoothAddress;
 }
