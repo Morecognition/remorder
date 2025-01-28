@@ -1,4 +1,4 @@
-package com.morecognition.remorder
+package com.morecognition.remorder_flutter
 
 import io.flutter.embedding.android.FlutterActivity
 
