@@ -200,8 +200,7 @@ class _ColorLabel extends StatelessWidget {
     );
   }
 
-  const _ColorLabel({Key? key, required this.color, required this.text})
-      : super(key: key);
+  const _ColorLabel({required this.color, required this.text});
   final Color color;
   final String text;
 }
@@ -213,9 +212,8 @@ class _DataChart extends StatefulWidget {
   }
 
   const _DataChart({
-    Key? key,
     required this.remoDataStream,
-  }) : super(key: key);
+  });
 
   final Stream<RemoData> remoDataStream;
 }
@@ -374,7 +372,7 @@ class _DataChartState extends State<_DataChart> {
 }
 
 class _SaveDialog extends StatefulWidget {
-  const _SaveDialog({Key? key}) : super(key: key);
+  const _SaveDialog();
 
   @override
   State<StatefulWidget> createState() {

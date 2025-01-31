@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
-import 'package:remorder/ui/home.dart';
-import 'package:remorder/ui/remo_transmission.dart';
-
-import 'ui/remo_connection.dart';
+import 'package:design_sync/design_sync.dart';
+import 'package:remorder/ui/pages/home.dart';
+import 'package:remorder/ui/pages/paring_page.dart';
+import 'package:remorder/ui/pages/new_remo_connection.dart';
+import 'package:remorder/ui/pages/remo_transmission.dart';
 
 void main() {
+  DesignSync.initialize(figmaCanvasSize: Size(375, 812));
   runApp(const MyApp());
 }
 
@@ -30,8 +32,9 @@ class MyApp extends StatelessWidget {
           title: 'Remo physiotherapy',
           theme: ThemeData(
             // Morecognition dark blue.
-            primaryColor: const Color.fromRGBO(49, 61, 83, 1),
+            primaryColor: const Color(0xFF80D0D4),
             visualDensity: VisualDensity.adaptivePlatformDensity,
+            fontFamily: 'Poppins',
             textTheme: const TextTheme(
               labelLarge: TextStyle(
                 fontSize: 16,
@@ -77,11 +80,12 @@ class MyApp extends StatelessWidget {
                 .copyWith(secondary: const Color.fromRGBO(93, 225, 167, 1)),
           ),
           routes: {
-            '/': (context) => const Home(),
-            '/remo_connection': (context) => const WearRemoStep(),
+            '/pairing': (context) => const PairingPage(),
+            '/pairing/connection': (context) => const RemoConnection(),
+            '/home': (context) => const Home(),
             '/remo_transmission': (context) => const RemoTransmission(),
           },
-          initialRoute: '/',
+          initialRoute: '/pairing',
         ),
       ),
     );
