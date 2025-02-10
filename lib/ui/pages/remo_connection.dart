@@ -14,41 +14,49 @@ class RemoConnection extends StatelessWidget {
         builder: (context, bluetoothState) {
       return BlocBuilder<RemoBloc, RemoState>(
           builder: (context, remoState) {
-        return Scaffold(
-            appBar: AppBar(
-                automaticallyImplyLeading: false,
-                centerTitle: true,
-                backgroundColor: Theme.of(context).primaryColor,
-                titleTextStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.adaptedFontSize,
-                    fontWeight: FontWeight.w600),
-                toolbarHeight: 110.adaptedHeight,
-                title: _getAppTitle(bluetoothState, remoState)),
-            backgroundColor: const Color(0xFFF6F7FF),
-            body: Builder(builder: (context) {
-              if (bluetoothState is BluetoothInitial) {
-                context.read<BluetoothBloc>().add(OnStartDiscovery());
-              }
+        return Stack(
+          children: [
+            Image.asset(
+              "assets/page_background.png",
+              fit: BoxFit.fitHeight,
+            ),
+            Scaffold(
+                appBar: AppBar(
+                    automaticallyImplyLeading: false,
+                    centerTitle: true,
+                    backgroundColor: Colors.transparent,
+                    titleTextStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.adaptedFontSize,
+                        fontWeight: FontWeight.w600),
+                    toolbarHeight: 65.adaptedHeight,
+                    title: _getAppTitle(bluetoothState, remoState)),
+                backgroundColor: Colors.transparent,
+                body: Builder(builder: (context) {
+                  if (bluetoothState is BluetoothInitial) {
+                    context.read<BluetoothBloc>().add(OnStartDiscovery());
+                  }
 
-              if (remoState is Disconnected) {
-                if (bluetoothState is DiscoveringDevices) {
-                  return _buildWaitingWidget();
-                } else if (bluetoothState is DiscoveredDevices) {
-                  return _buildDeviceListWidget(context, bluetoothState);
-                } else {
-                  return Text("$bluetoothState");
-                }
-              } else if (remoState is Connecting) {
-                return _buildWaitingWidget();
-              } else if (remoState is Connected) {
-                return _buildParingSuccessfulWidget(context);
-              } else if (remoState is ConnectionError) {
-                return _buildParingFailedWidget(context);
-              } else {
-                return Text("$remoState");
-              }
-            }));
+                  if (remoState is Disconnected) {
+                    if (bluetoothState is DiscoveringDevices) {
+                      return _buildWaitingWidget();
+                    } else if (bluetoothState is DiscoveredDevices) {
+                      return _buildDeviceListWidget(context, bluetoothState);
+                    } else {
+                      return Text("$bluetoothState");
+                    }
+                  } else if (remoState is Connecting) {
+                    return _buildWaitingWidget();
+                  } else if (remoState is Connected) {
+                    return _buildParingSuccessfulWidget(context);
+                  } else if (remoState is ConnectionError) {
+                    return _buildParingFailedWidget(context);
+                  } else {
+                    return Text("$remoState");
+                  }
+                })),
+          ],
+        );
       });
     });
   }
@@ -95,31 +103,34 @@ class RemoConnection extends StatelessWidget {
 
   Widget _buildDeviceListWidget(
       BuildContext context, DiscoveredDevices bluetoothState) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: List.generate(bluetoothState.deviceNames.length, (index) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.adaptedHeight, horizontal: 17.adaptedWidth),
-          child: ListTile(
-            leading: Image.asset("assets/remo.png"),
-            title: Text(
-              bluetoothState.deviceNames[index],
-              style: TextStyle(
-                  color: Color(0xFF2B3A51), fontWeight: FontWeight.w600),
+    return Padding(
+      padding: EdgeInsets.only(top: 70.adaptedHeight),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: List.generate(bluetoothState.deviceNames.length, (index) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.adaptedHeight, horizontal: 17.adaptedWidth),
+            child: ListTile(
+              leading: Image.asset("assets/remo.png"),
+              title: Text(
+                bluetoothState.deviceNames[index],
+                style: TextStyle(
+                    color: Color(0xFF2B3A51), fontWeight: FontWeight.w600),
+              ),
+              //subtitle: Text(bluetoothState.deviceAddresses[index]),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.adaptedRadius),
+              ),
+              tileColor: Color(0x6680D0D4),
+              onTap: () {
+                context.read<RemoBloc>().add(
+                      OnConnectDevice(bluetoothState.deviceAddresses[index], bluetoothState.deviceNames[index]),
+                    );
+              },
             ),
-            //subtitle: Text(bluetoothState.deviceAddresses[index]),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5.adaptedRadius),
-            ),
-            tileColor: Color(0x0E2B3A51),
-            onTap: () {
-              context.read<RemoBloc>().add(
-                    OnConnectDevice(bluetoothState.deviceAddresses[index]),
-                  );
-            },
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 

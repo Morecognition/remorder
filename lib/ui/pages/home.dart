@@ -12,82 +12,101 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        backgroundColor: Theme.of(context).primaryColor,
-        titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20.adaptedFontSize,
-            fontWeight: FontWeight.w600),
-        toolbarHeight: 110.adaptedHeight,
-        title: const Text('Welcome to Remorder'),
-      ),
-      backgroundColor: const Color(0xFFF6F7FF),
-      body: BlocBuilder<RemoBloc, RemoState>(
-        builder: (context, remoState) {
-          return Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 105.adaptedHeight),
-                Image.asset(
-                  'assets/remo_check.png',
-                ),
-                SizedBox(height: 14.adaptedHeight),
-                const Text("Device"),
-                Text("REMO005"),
-                SizedBox(height: 21.adaptedHeight),
-                DecoratedBox(
-                    decoration: BoxDecoration(
-                        color: Color(0xFF2B3A51),
-                        borderRadius:
-                            BorderRadius.all(Radius.circular(12.5.adaptedRadius))),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8),
-                      child: Text("Connected", style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600
-                      ),),
-                    )),
-                Spacer(),
-                FilledButton(
-                  onPressed: () {
-                    goToNextPage(context);
-                  },
-                  style: FilledButton.styleFrom(
-                    fixedSize: Size(
-                      343.adaptedWidth,
-                      48.adaptedHeight,
+    return Stack(
+      children: [
+        Image.asset(
+          "assets/home_background.png",
+          fit: BoxFit.fitHeight,
+        ),
+        Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            titleTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 20.adaptedFontSize,
+                fontWeight: FontWeight.w600),
+            toolbarHeight: 80.adaptedHeight,
+            title: const Text('Welcome to Remorder'),
+          ),
+          backgroundColor: Colors.transparent,
+          body: BlocBuilder<RemoBloc, RemoState>(
+            builder: (context, remoState) {
+              var deviceName = context.read<RemoBloc>().currentDeviceName;
+              return Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 50.adaptedHeight),
+                    Image.asset(
+                      remoState is! Disconnected ? 'assets/remo_check.png' : 'assets/remo_fail.png',
                     ),
-                    shape: ContinuousRectangleBorder(
-                        borderRadius:
-                            BorderRadius.all(Radius.circular(60.adaptedRadius))),
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
-                  child: Text('Start',
-                      style: TextStyle(
+                    SizedBox(height: 14.adaptedHeight),
+                    Text("Device",
+                        style: TextStyle(
+                            color: Color(0xFF4B4F58),
+                            fontSize: 15.adaptedFontSize
+                        )),
+                    Text(deviceName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontSize: 16.adaptedFontSize
+                    )),
+                    SizedBox(height: 21.adaptedHeight),
+                    DecoratedBox(
+                        decoration: BoxDecoration(
+                            color: Color(0xFF2B3A51),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(12.5.adaptedRadius))),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8),
+                          child: Text(remoState is! Disconnected ? "Connected" : "Disconnected",
+                            style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600
+                          ),),
+                        )),
+                    Spacer(),
+                    FilledButton(
+                      onPressed: () {
+                        goToNextPage(context);
+                      },
+                      style: FilledButton.styleFrom(
+                        fixedSize: Size(
+                          343.adaptedWidth,
+                          48.adaptedHeight,
+                        ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(60.adaptedRadius))),
+                        backgroundColor: Theme.of(context).primaryColor,
+                      ),
+                      child: Text('Start',
+                          style: TextStyle(
+                              fontSize: 20.adaptedFontSize,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                    SizedBox(height: 25.adaptedHeight),
+                    TextButton(
+                      onPressed: () {},
+                      child: Text('Choose another device',
+                          style: TextStyle(
                           fontSize: 20.adaptedFontSize,
-                          fontWeight: FontWeight.w600)),
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    SizedBox(height: 40.adaptedHeight),
+                  ],
                 ),
-                SizedBox(height: 25.adaptedHeight),
-                TextButton(
-                  onPressed: () {},
-                  child: Text('Choose another device',
-                      style: TextStyle(
-                      fontSize: 20.adaptedFontSize,
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w600),
-                  ),
-                ),
-                SizedBox(height: 40.adaptedHeight),
-              ],
-            ),
-          );
-        }
-      ),
+              );
+            }
+          ),
+        ),
+      ],
     );
   }
 

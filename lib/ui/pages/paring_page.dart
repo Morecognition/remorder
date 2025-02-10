@@ -10,66 +10,80 @@ class PairingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Theme.of(context).primaryColor,
-        titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20.adaptedFontSize,
-            fontWeight: FontWeight.w600
-        ),
-        toolbarHeight: 110.adaptedHeight,
-        title: const Text('Welcome to Remorder'),
-      ),
-      backgroundColor: const Color(0xFFF6F7FF),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: 15.adaptedHeight),
-              child: Text("Wear Remo and turn it on"),
+    return Stack(
+      children: [
+        Image.asset(
+          "assets/page_background.png",
+          fit: BoxFit.fitHeight,
+          ),
+        Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            titleTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 20.adaptedFontSize,
+                fontWeight: FontWeight.w600
             ),
-            Text("Turn on Bluetooth on your device"),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 25.adaptedHeight),
-              child: Image.asset(
-                'assets/wear_remo.png',
+            toolbarHeight: 65.adaptedHeight,
+            title: Center(
+              child: const Column(
+                children: [
+                  Text('Welcome to Remorder'),
+                ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 40.adaptedHeight),
-              child: Image.asset(
-                'assets/bluetooth_connection.png',
-              ),
-            ),
-            FilledButton(
-              onPressed: () {
-                goToNextPage(context);
-              },
-              style: FilledButton.styleFrom(
-                fixedSize: Size(
-                  343.adaptedWidth,
-                  48.adaptedHeight,
+          ),
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: 15.adaptedHeight),
+                  child: Text("Wear Remo and turn it on"),
                 ),
-                shape: ContinuousRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(24.adaptedRadius))
+                Text("Turn on Bluetooth on your device"),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 25.adaptedHeight),
+                  child: Image.asset(
+                    'assets/wear_remo.png',
+                  ),
                 ),
-                backgroundColor: Theme.of(context).primaryColor,
-              ),
-              child: Text(
-                'Start pairing',
-                style: TextStyle(
-                  fontSize: 20.adaptedFontSize,
-                  fontWeight: FontWeight.w600
-                )
-              ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 40.adaptedHeight),
+                  child: Image.asset(
+                    'assets/bluetooth_connection.png',
+                  ),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    goToNextPage(context);
+                  },
+                  style: FilledButton.styleFrom(
+                    fixedSize: Size(
+                      343.adaptedWidth,
+                      48.adaptedHeight,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24.adaptedRadius))
+                    ),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                  child: Text(
+                    'Start pairing',
+                    style: TextStyle(
+                      fontSize: 20.adaptedFontSize,
+                      fontWeight: FontWeight.w600
+                    )
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

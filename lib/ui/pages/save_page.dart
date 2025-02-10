@@ -1,4 +1,3 @@
-
 import 'package:design_sync/design_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,34 +24,46 @@ class _SaveState extends State<SavePage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: Scaffold(
-          appBar: AppBar(
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              backgroundColor: Theme.of(context).primaryColor,
-              titleTextStyle: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20.adaptedFontSize,
-                  fontWeight: FontWeight.w600),
-              toolbarHeight: 110.adaptedHeight,
-              title: const Text("Want to save the record?")),
-          backgroundColor: const Color(0xFFF6F7FF),
-          body: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 16.adaptedWidth, vertical: 30.adaptedHeight),
-            child: Center(child: BlocBuilder<RemoFileBloc, RemoFileState>(
-                builder: (context, remoFileState) {
-              if (remoFileState is SavingRecord) {
-                return LoadingLoop();
-              }
+      child: Stack(
+        children: [
+          Image.asset(
+            "assets/page_background.png",
+            fit: BoxFit.fitHeight,
+          ),
+          Scaffold(
+              appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  centerTitle: true,
+                  backgroundColor: Colors.transparent,
+                  titleTextStyle: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.adaptedFontSize,
+                      fontWeight: FontWeight.w600),
+                  toolbarHeight: 65.adaptedHeight,
+                  title: _getAppTitle()),
+              backgroundColor: Colors.transparent,
+              body: Padding(
+                padding: EdgeInsets.only(
+                    right: 16.adaptedWidth, left: 16.adaptedWidth, top: 80.adaptedHeight, bottom: 30.adaptedHeight),
+                child: Center(child: BlocBuilder<RemoFileBloc, RemoFileState>(
+                    builder: (context, remoFileState) {
+                  if (remoFileState is SavingRecord) {
+                    return LoadingLoop();
+                  }
 
-              if (remoFileState is RecordSaved) {
-                return Image.asset("assets/check_mark.png");
-              }
+                  if (remoFileState is RemoFileReady) {
+                    Future.delayed(Duration(seconds: 2), () => Navigator.pop(context));
+                  }
 
-              return _buildSaveScreen();
-            })),
-          )),
+                  if (remoFileState is RecordSaved || remoFileState is RemoFileReady) {
+                    return Image.asset("assets/check_mark.png");
+                  }
+
+                  return _buildSaveScreen();
+                })),
+              )),
+        ],
+      ),
     );
   }
 
@@ -68,14 +79,13 @@ class _SaveState extends State<SavePage> {
         FilledButton(
           onPressed: () {
             context.read<RemoFileBloc>().add(SaveRecord(selectedFileName));
-            Navigator.pop(context);
           },
           style: FilledButton.styleFrom(
             fixedSize: Size(
               343.adaptedWidth,
               48.adaptedHeight,
             ),
-            shape: ContinuousRectangleBorder(
+            shape: RoundedRectangleBorder(
                 borderRadius:
                     BorderRadius.all(Radius.circular(60.adaptedRadius))),
             backgroundColor: Theme.of(context).primaryColor,
@@ -170,7 +180,7 @@ class _SaveState extends State<SavePage> {
                     163.adaptedWidth,
                     48.adaptedHeight,
                   ),
-                  shape: ContinuousRectangleBorder(
+                  shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.all(Radius.circular(60.adaptedRadius))),
                   backgroundColor: Theme.of(context).primaryColor,
@@ -194,5 +204,20 @@ class _SaveState extends State<SavePage> {
             ],
           ),
         ));
+  }
+
+  Widget _getAppTitle() {
+    return BlocBuilder<RemoFileBloc, RemoFileState>(
+        builder: (context, remoFileState) {
+      if (remoFileState is RecordSaved || remoFileState is RemoFileReady) {
+        return const Text("Saved!");
+      }
+
+      if (remoFileState is SavingRecord) {
+        return const Text("Saving...");
+      }
+
+      return const Text("Want to save the record?");
+    });
   }
 }
