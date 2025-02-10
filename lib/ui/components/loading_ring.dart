@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:design_sync/design_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' show radians;
 

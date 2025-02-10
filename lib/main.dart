@@ -4,8 +4,9 @@ import 'package:flutter_remo/flutter_remo.dart';
 import 'package:design_sync/design_sync.dart';
 import 'package:remorder/ui/pages/home.dart';
 import 'package:remorder/ui/pages/paring_page.dart';
-import 'package:remorder/ui/pages/new_remo_connection.dart';
+import 'package:remorder/ui/pages/remo_connection.dart';
 import 'package:remorder/ui/pages/remo_transmission.dart';
+import 'package:remorder/ui/pages/save_page.dart';
 
 void main() {
   DesignSync.initialize(figmaCanvasSize: Size(375, 812));
@@ -26,8 +27,12 @@ class MyApp extends StatelessWidget {
           FocusManager.instance.primaryFocus!.unfocus();
         }
       },
-      child: BlocProvider(
-        create: (BuildContext context) => RemoBloc(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<BluetoothBloc>(create: (context) => BluetoothBloc()),
+          BlocProvider<RemoBloc>(create: (context) => RemoBloc()),
+          BlocProvider<RemoFileBloc>(create: (context) => RemoFileBloc())
+        ],
         child: MaterialApp(
           title: 'Remo physiotherapy',
           theme: ThemeData(
@@ -84,6 +89,7 @@ class MyApp extends StatelessWidget {
             '/pairing/connection': (context) => const RemoConnection(),
             '/home': (context) => const Home(),
             '/remo_transmission': (context) => const RemoTransmission(),
+            '/save_page': (context) => const SavePage(),
           },
           initialRoute: '/pairing',
         ),

@@ -5,7 +5,7 @@ part 'chart_event.dart';
 part 'chart_state.dart';
 
 class ChartBloc extends Bloc<ChartEvent, ChartState> {
-  ChartBloc() : super(ChartInitial()) {
+  ChartBloc() : super(LineState()) {
     on<SwitchChart>(
       (event, emit) {
         switch (_chartTypes) {

@@ -22,6 +22,7 @@ class PairingPage extends StatelessWidget {
         toolbarHeight: 110.adaptedHeight,
         title: const Text('Welcome to Remorder'),
       ),
+      backgroundColor: const Color(0xFFF6F7FF),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

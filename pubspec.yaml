@@ -39,6 +39,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   device_info_plus: ^11.2.1
   rxdart: ^0.28.0
+  delayed_tween_animation_builder: ^0.5.1
 
 dev_dependencies:
   flutter_test:
