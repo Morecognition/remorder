@@ -52,7 +52,11 @@ class _SaveState extends State<SavePage> {
                   }
 
                   if (remoFileState is RemoFileReady) {
-                    Future.delayed(Duration(seconds: 2), () => Navigator.pop(context));
+                    Future.delayed(Duration(seconds: 2), () {
+                      if(context.mounted) {
+                        Navigator.pop(context);
+                      }
+                    });
                   }
 
                   if (remoFileState is RecordSaved || remoFileState is RemoFileReady) {

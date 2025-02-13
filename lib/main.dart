@@ -5,6 +5,7 @@ import 'package:design_sync/design_sync.dart';
 import 'package:remorder/ui/pages/home.dart';
 import 'package:remorder/ui/pages/paring_page.dart';
 import 'package:remorder/ui/pages/remo_connection.dart';
+import 'package:remorder/ui/pages/remo_playback.dart';
 import 'package:remorder/ui/pages/remo_transmission.dart';
 import 'package:remorder/ui/pages/save_page.dart';
 
@@ -90,6 +91,7 @@ class MyApp extends StatelessWidget {
             '/home': (context) => const Home(),
             '/remo_transmission': (context) => const RemoTransmission(),
             '/save_page': (context) => const SavePage(),
+            '/playback_page': (context) => const RemoPlayback(),
           },
           initialRoute: '/pairing',
         ),

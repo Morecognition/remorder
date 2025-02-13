@@ -1,19 +1,17 @@
 import 'dart:async';
 
 import 'package:design_sync/design_sync.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_remo/flutter_remo.dart';
 import 'package:remorder/bloc/chart/chart_bloc.dart';
-import 'package:remorder/ui/components/recording_button.dart';
 import 'package:vector_math/vector_math.dart' show Vector3;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../components/data_chart.dart';
 
-class RemoTransmission extends StatelessWidget {
-  const RemoTransmission({super.key});
+class RemoPlayback extends StatelessWidget {
+  const RemoPlayback({super.key});
 
   static const channelColors = [
     Color(0xFFFC7F8E),
@@ -36,44 +34,21 @@ class RemoTransmission extends StatelessWidget {
         toolbarHeight: 50.adaptedHeight,
         flexibleSpace: Container(
           alignment: Alignment.bottomCenter,
-          child: Row(
-            children: [
-              SizedBox(width: 20.adaptedWidth),
-              BlocBuilder<RemoFileBloc, RemoFileState>(
-                builder: (context, remoFileState) {
-                  return IconButton(
-                      onPressed: remoFileState is Recording ? null : () async {
-                        var result = await FilePicker.platform.pickFiles(
-                            type: FileType.custom, allowedExtensions: ['csv']);
+          child: BlocBuilder<RemoFileBloc, RemoFileState>(
+            builder: (context, remoFileState) {
+              var pageName = "Data visualization";
 
-                        if (result == null || result.files.single.path == null) {
-                          return;
-                        }
+              if(remoFileState is RecordOpened) {
+                pageName = remoFileState.filePath.split('/').last;
+              }
 
-                        if (context.mounted) {
-                          context
-                              .read<RemoFileBloc>()
-                              .add(OpenRecord(result.files.single.path!));
-                          Navigator.pushNamed(context, "/playback_page").then((c) {
-                            if (context.mounted) {
-                              context.read<RemoFileBloc>().add(Reset());
-                            }
-                          });
-                        }
-                      },
-                      icon: Image.asset("assets/folder_icon.png",
-                        color: remoFileState is Recording ? Colors.grey : null));
-                }
-              ),
-              SizedBox(width: 35.adaptedWidth),
-              Text(
-                "Data visualization",
+              return Text(
+                pageName,
                 style: TextStyle(
                     color: Color(0xFF2B3A51),
                     fontSize: 20.adaptedFontSize,
-                    fontWeight: FontWeight.w700),
-              ),
-            ],
+                    fontWeight: FontWeight.w700));
+              },
           ),
         ),
         centerTitle: true,
@@ -81,67 +56,37 @@ class RemoTransmission extends StatelessWidget {
       backgroundColor: const Color(0xFFF6F7FF),
       body: BlocProvider<ChartBloc>(
         create: (context) => ChartBloc(),
-        child: BlocBuilder<RemoBloc, RemoState>(
-          builder: (builderContext, remoState) {
-            if (remoState is Connected) {
-              builderContext.read<RemoBloc>().add(OnStartTransmission());
-            }
-
-            if (remoState is StartingTransmission ||
-                remoState is StoppingTransmission) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            return BlocListener<RemoFileBloc, RemoFileState>(
-              listener: (context, state) async {
-                if (state is RecordingComplete) {
-                  Navigator.pushNamed(context, "/save_page");
-                }
-              },
-              child: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 16.adaptedHeight),
-                      Column(children: [
-                        _buildChartButtons(),
-                        SizedBox(height: 46.adaptedHeight),
-                        _buildFilterButtons(),
-                        SizedBox(height: 12.adaptedHeight),
-                      ]),
-                      Container(
-                        width: 343.adaptedWidth,
-                        height: 432.adaptedHeight,
-                        color: Colors.white,
-                        child: remoState is TransmissionStarted
-                            ? DataChart(
-                                remoDataStream: remoState.remoDataStream,
-                                colors: channelColors,
-                                key: Key("remo chart"))
-                            : DataChart(
-                                remoDataStream: Stream.empty(),
-                                colors: channelColors,
-                                key: Key("empty chart")),
-                      ),
-                      SizedBox(height: 15.adaptedHeight),
-                      BlocBuilder<RemoFileBloc, RemoFileState>(
-                          builder: (context, remoFileState) => RecordButton(
-                                recording: remoFileState is Recording,
-                                onRecordPressed: () => context
-                                    .read<RemoFileBloc>()
-                                    .add(StartRecording(
-                                        remoState is TransmissionStarted
-                                            ? remoState.remoDataStream
-                                            : Stream.empty())),
-                                onStopPressed: () => context
-                                    .read<RemoFileBloc>()
-                                    .add(StopRecording()),
-                              )),
+        child: BlocBuilder<RemoFileBloc, RemoFileState>(
+          builder: (builderContext, remoFileState) {
+            return Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 16.adaptedHeight),
+                    Column(children: [
+                      _buildChartButtons(),
+                      SizedBox(height: 46.adaptedHeight),
+                      _buildFilterButtons(),
+                      SizedBox(height: 12.adaptedHeight),
                     ]),
-              ),
+                    Container(
+                      width: 343.adaptedWidth,
+                      height: 432.adaptedHeight,
+                      color: Colors.white,
+                      child: remoFileState is RecordOpened
+                          ? DataChart(
+                              remoDataStream: Stream.fromIterable(remoFileState.remoData),
+                              colors: channelColors,
+                              showAll: true,
+                              key: Key("remo chart"))
+                          : DataChart(
+                              remoDataStream: Stream.empty(),
+                              colors: channelColors,
+                              key: Key("empty chart")),
+                    ),
+                    SizedBox(height: 15.adaptedHeight),
+                  ]),
             );
           },
         ),
