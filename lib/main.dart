@@ -9,7 +9,8 @@ import 'package:remorder/ui/pages/remo_playback.dart';
 import 'package:remorder/ui/pages/remo_transmission.dart';
 import 'package:remorder/ui/pages/save_page.dart';
 
-void main() {
+void main() async {
+  await Future.delayed(Duration(seconds: 1));
   DesignSync.initialize(figmaCanvasSize: Size(375, 812));
   runApp(const MyApp());
 }
@@ -34,66 +35,70 @@ class MyApp extends StatelessWidget {
           BlocProvider<RemoBloc>(create: (context) => RemoBloc()),
           BlocProvider<RemoFileBloc>(create: (context) => RemoFileBloc())
         ],
-        child: MaterialApp(
-          title: 'Remo physiotherapy',
-          theme: ThemeData(
-            // Morecognition dark blue.
-            primaryColor: const Color(0xFF80D0D4),
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            fontFamily: 'Poppins',
-            textTheme: const TextTheme(
-              labelLarge: TextStyle(
-                fontSize: 16,
-                fontFamily: 'Isidora Sans SemiBold',
-                color: Color.fromRGBO(255, 255, 255, 1),
-              ),
-            ),
-            tabBarTheme: const TabBarTheme(
-              labelColor: Color.fromRGBO(93, 225, 167, 1),
-              unselectedLabelColor: Colors.white70,
-            ),
-            // Light grey.
-            cardColor: const Color.fromRGBO(242, 243, 244, 1),
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        child: Builder(
+          builder: (context) {
+            return MaterialApp(
+            title: 'Remo physiotherapy',
+            theme: ThemeData(
               // Morecognition dark blue.
-              backgroundColor: Color.fromRGBO(49, 61, 83, 1),
+              primaryColor: const Color(0xFF80D0D4),
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              fontFamily: 'Figtree',
+              textTheme: const TextTheme(
+                labelLarge: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Isidora Sans SemiBold',
+                  color: Color.fromRGBO(255, 255, 255, 1),
+                ),
+              ),
+              tabBarTheme: const TabBarTheme(
+                labelColor: Color.fromRGBO(93, 225, 167, 1),
+                unselectedLabelColor: Colors.white70,
+              ),
               // Light grey.
-              unselectedIconTheme:
-                  IconThemeData(color: Color.fromRGBO(242, 243, 244, 1)),
-              // Light grey.
-              unselectedItemColor: Color.fromRGBO(242, 243, 244, 1),
-              // Morecognition light green
-              selectedItemColor: Color.fromRGBO(93, 225, 167, 1),
-            ),
-            colorScheme: ColorScheme.fromSwatch(primarySwatch: () {
-              // Morecognition light green.
-              Map<int, Color> swatch = {
-                50: const Color.fromRGBO(93, 225, 167, .1),
-                100: const Color.fromRGBO(93, 225, 167, .2),
-                200: const Color.fromRGBO(93, 225, 167, .3),
-                300: const Color.fromRGBO(93, 225, 167, .4),
-                400: const Color.fromRGBO(93, 225, 167, .5),
-                500: const Color.fromRGBO(93, 225, 167, .6),
-                600: const Color.fromRGBO(93, 225, 167, .7),
-                700: const Color.fromRGBO(93, 225, 167, .8),
-                800: const Color.fromRGBO(93, 225, 167, .9),
-                900: const Color.fromRGBO(93, 225, 167, 1),
-              };
+              cardColor: const Color.fromRGBO(242, 243, 244, 1),
+              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                // Morecognition dark blue.
+                backgroundColor: Color.fromRGBO(49, 61, 83, 1),
+                // Light grey.
+                unselectedIconTheme:
+                    IconThemeData(color: Color.fromRGBO(242, 243, 244, 1)),
+                // Light grey.
+                unselectedItemColor: Color.fromRGBO(242, 243, 244, 1),
+                // Morecognition light green
+                selectedItemColor: Color.fromRGBO(93, 225, 167, 1),
+              ),
+              colorScheme: ColorScheme.fromSwatch(primarySwatch: () {
+                // Morecognition light green.
+                Map<int, Color> swatch = {
+                  50: const Color.fromRGBO(93, 225, 167, .1),
+                  100: const Color.fromRGBO(93, 225, 167, .2),
+                  200: const Color.fromRGBO(93, 225, 167, .3),
+                  300: const Color.fromRGBO(93, 225, 167, .4),
+                  400: const Color.fromRGBO(93, 225, 167, .5),
+                  500: const Color.fromRGBO(93, 225, 167, .6),
+                  600: const Color.fromRGBO(93, 225, 167, .7),
+                  700: const Color.fromRGBO(93, 225, 167, .8),
+                  800: const Color.fromRGBO(93, 225, 167, .9),
+                  900: const Color.fromRGBO(93, 225, 167, 1),
+                };
 
-              return MaterialColor(
-                  const Color.fromRGBO(49, 61, 83, 1).value, swatch);
-            }())
-                .copyWith(secondary: const Color.fromRGBO(93, 225, 167, 1)),
-          ),
-          routes: {
-            '/pairing': (context) => const PairingPage(),
-            '/pairing/connection': (context) => const RemoConnection(),
-            '/home': (context) => const Home(),
-            '/remo_transmission': (context) => const RemoTransmission(),
-            '/save_page': (context) => const SavePage(),
-            '/playback_page': (context) => const RemoPlayback(),
-          },
-          initialRoute: '/pairing',
+                return MaterialColor(
+                    const Color.fromRGBO(49, 61, 83, 1).value, swatch);
+              }())
+                  .copyWith(secondary: const Color.fromRGBO(93, 225, 167, 1)),
+            ),
+            routes: {
+              '/pairing': (context) => const PairingPage(),
+              '/pairing/connection': (context) => const RemoConnection(),
+              '/home': (context) => const Home(),
+              '/remo_transmission': (context) => const RemoTransmission(),
+              '/save_page': (context) => const SavePage(),
+              '/playback_page': (context) => const RemoPlayback(),
+            },
+            initialRoute: '/pairing',
+          );
+          }
         ),
       ),
     );
